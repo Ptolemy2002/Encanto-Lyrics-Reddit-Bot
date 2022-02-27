@@ -4,6 +4,7 @@ import os
 import tools
 import re
 import time
+import sys
 
 file_contents_cache = {}
 
@@ -97,6 +98,12 @@ def get_user_blacklist():
 			pass
 	return user_blacklist
 
+def update_user_blacklist(user_blacklist):
+	#overwrite the user blacklist with the new one
+	with open('user_blacklist.txt', 'w') as f:
+		for user in user_blacklist:
+			f.write(user + '\n')
+
 song_list = get_file_contents('songs.txt')
 
 args = tools.get_args(
@@ -146,6 +153,41 @@ mods = reddit_tools.get_mods(subreddit)
 print("Getting user blacklist")
 user_blacklist = get_user_blacklist()
 
+print("checking for user blacklist additions")
+opt_in_text = "!optin"
+opt_out_text = "!optout"
+
+#search for comments
+for comment in reddit_tools.get_notifications("comment", True):
+	body = comment.body
+	user = comment.author.name
+	if body.lower() == opt_out_text.lower() and not user in user_blacklist:
+		user_blacklist.append(user)
+		update_user_blacklist(user_blacklist)
+		print("User " + user + " has opted out of notifications.")
+		reddit_tools.reply_to_comment(comment, "You have opted out of this bot's services. Have a nice day!")
+	elif body.lower() == opt_in_text.lower() and user in user_blacklist:
+		user_blacklist.remove(user)
+		update_user_blacklist(user_blacklist)
+		print("User " + user + " has opted in to notifications.")
+		reddit_tools.reply_to_comment(comment, "You have opted back in to this bot's services. Have a nice day!")
+
+#search for messages
+for message in reddit_tools.get_notifications("message", True):
+	body = message.subject
+	user = message.author.name
+	if body.lower() == opt_out_text.lower() and not user in user_blacklist:
+		user_blacklist.append(user)
+		update_user_blacklist(user_blacklist)
+		print("User " + user + " has opted out of notifications.")
+		reddit_tools.reply_to_message(message, "You have opted out of this bot's services. Have a nice day!")
+	elif body.lower() == opt_in_text.lower() and user in user_blacklist:
+		user_blacklist.remove(user)
+		update_user_blacklist(user_blacklist)
+		print("User " + user + " has opted in to notifications.")
+		reddit_tools.reply_to_message(message, "You have opted back in to this bot's services. Have a nice day!")
+
+
 original_lyrics = get_original_lyrics(song_name)
 clean_lyrics = get_clean_lyrics(song_name)
 
@@ -161,24 +203,28 @@ print(f"Got {total_comments} comments in {str(time.time() - start_time)} seconds
 print("Handling comments")
 start_time = time.time()
 for comment in comments:
+	cont = False
 	#Don't handle the comment if it is a root comment made by a moderator
-	if comment.author in mods and reddit_tools.is_root_comment(comment):
-		f"Found root comment '{comment.id}' made by a moderator. Skipping..."
-		continue
+	if comment.author.name in mods and reddit_tools.is_root_comment(comment):
+		print(f"Found root comment '{comment.id}' made by a moderator. Skipping...")
+		cont = True
 
 	#Don't handle the comment if it is  made by a blacklisted user
-	if comment.author in user_blacklist:
-		f"Found comment '{comment.id}' made by a blacklisted user (u/{comment.author}). Skipping..."
-		continue
+	if comment.author.name in user_blacklist:
+		print(f"Found comment '{comment.id}' made by a blacklisted user (u/{comment.author}). Skipping...")
+		cont = True
 
 	#Don't handle the comment if it's made by the bot
-	if comment.author == reddit_tools.username:
+	if comment.author.name == reddit_tools.username:
 		print(f"Found comment '{comment.id}' by this bot. Skipping...")
-		continue
+		cont = True
 
 	#Don't handle the comment if it has already been replied to
 	if reddit_tools.did_reply_comment(comment):
 		print(f"Found comment '{comment.id}' already replied to. Skipping...")
+		cont = True
+	
+	if cont:
 		continue
 	
 	#print(f"Found comment '{comment.id}' by '{comment.author.name}'. Body:")
@@ -187,4 +233,4 @@ for comment in comments:
 	handled_comments += 1
 
 ignored_comments = total_comments - handled_comments
-print(f"Handled {handled_comments} out of {total_comments} ({ignored_comments} ignored; {(handled_comments/handled_comments) * 100}% coverage) comments in {str(time.time() - start_time)} seconds")
+print(f"Handled {handled_comments} out of {total_comments} ({ignored_comments} ignored; {(handled_comments/total_comments) * 100}% coverage) comments in {str(time.time() - start_time)} seconds")

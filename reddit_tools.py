@@ -79,3 +79,41 @@ def did_reply_submission(submission, username=username, require_root=True):
 		elif (not require_root) and did_reply_comment(comment, username, False):
 			return True
 	return False
+
+def get_notifications(type='comment', unread=False):
+	notifications = []
+	if unread:
+		notifications = reddit.inbox.unread()
+	else:
+		notifications = reddit.inbox.all()
+	
+	result = []
+	for notification in notifications:
+		if type == 'comment':
+			if isinstance(notification, praw.models.Comment):
+				result.append(notification)
+				reddit.inbox.mark_read([notification])
+		elif type == 'submission':
+			if isinstance(notification, praw.models.Submission):
+				result.append(notification)
+				reddit.inbox.mark_read([notification])
+		elif type == 'message':
+			if isinstance(notification, praw.models.Message):
+				result.append(notification)
+				reddit.inbox.mark_read([notification])
+		elif type == 'all':
+			result.append(notification)
+			reddit.inbox.mark_read([notification])
+		else:
+			raise Exception('Invalid notification type: ' + type)
+
+	return result
+
+def reply_to_comment(comment, text):
+	comment.reply(text)
+
+def reply_to_submission(submission, text):
+	submission.reply(text)
+
+def reply_to_message(message, text):
+	message.reply(text)

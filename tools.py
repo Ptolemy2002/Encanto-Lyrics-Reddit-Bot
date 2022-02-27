@@ -75,6 +75,9 @@ def enforced_input(prompt, target_type=str, invalid_message="Invalid Input.", co
         if len(result) >= 1 and result[-1] == "f":
             result = result[:-1]
     elif target_type is str:
+        if cancel != None and result.lower() == cancel.lower():
+          return default
+
         c = call_condition(condition, result, None)
         # Allow this function to explicitly end the loop if necessary.
         if type(c) is str and c.lower() == "end":
@@ -286,6 +289,12 @@ def get_args(args, allow_input=True):
                         if "condition" in arg and arg["condition"]:
                             condition = arg["condition"]
                             c = call_condition(condition, result[arg["name"]], result)
+
+                            if "input_args" in arg and "cancel" in arg["input_args"]:
+                                cancel = arg['input_args']['cancel']
+                                if str(result[arg["name"]]).lower() == cancel.lower():
+                                    raise TypeError("Invalid Input")
+
                             # Allow this condition to explicitly end the loop if necessary.
                             if type(c) is str and c.lower() == "end":
                                 result[arg["name"]] = arg["default"]
