@@ -42,7 +42,7 @@ def get_submission(submission_id):
 		return submission
 
 def get_submissions(subreddit, limit=1000):
-	submissions = subreddit.submissions(limit=limit)
+	submissions = subreddit.new(limit=limit)
 	result = []
 	for submission in submissions:
 		submission_cache[submission.id] = submission
