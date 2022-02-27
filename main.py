@@ -87,6 +87,16 @@ def get_clean_lyrics(song):
 			'". Please add them through a text file in the lyrics/original directory. The file name should be the same as the song name.'
 		)
 
+def get_user_blacklist():
+	user_blacklist = []
+	if os.path.exists('user_blacklist.txt'):
+		user_blacklist = get_file_contents('user_blacklist.txt')
+	else:
+		#Write an empty blacklist to the file
+		with open('user_blacklist.txt', 'w') as f:
+			pass
+	return user_blacklist
+
 song_list = get_file_contents('songs.txt')
 
 args = tools.get_args(
@@ -130,6 +140,12 @@ subreddit = reddit_tools.reddit.subreddit(args['subreddit'])
 song_name = args['song']
 comment_limit = args['comment_limit']
 
+print("Getting subreddit moderators")
+mods = reddit_tools.get_mods(subreddit)
+
+print("Getting user blacklist")
+user_blacklist = get_user_blacklist()
+
 original_lyrics = get_original_lyrics(song_name)
 clean_lyrics = get_clean_lyrics(song_name)
 
@@ -145,6 +161,16 @@ print(f"Got {total_comments} comments in {str(time.time() - start_time)} seconds
 print("Handling comments")
 start_time = time.time()
 for comment in comments:
+	#Don't handle the comment if it is a root comment made by a moderator
+	if comment.author in mods and reddit_tools.is_root_comment(comment):
+		f"Found root comment '{comment.id}' made by a moderator. Skipping..."
+		continue
+
+	#Don't handle the comment if it is  made by a blacklisted user
+	if comment.author in user_blacklist:
+		f"Found comment '{comment.id}' made by a blacklisted user (u/{comment.author}). Skipping..."
+		continue
+
 	#Don't handle the comment if it's made by the bot
 	if comment.author == reddit_tools.username:
 		print(f"Found comment '{comment.id}' by this bot. Skipping...")

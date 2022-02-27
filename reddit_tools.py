@@ -8,6 +8,8 @@ except:
 	print("Install command: " + install_command)
 	exit()
 
+version = '0.1'
+
 username = '00PT_TestBot'
 test_subreddit = '00PTBotTest'
 reddit = praw.Reddit('bot1')
@@ -46,6 +48,19 @@ def get_submissions(subreddit, limit=1000):
 		submission_cache[submission.id] = submission
 		result.append(submission)
 	return result
+
+def get_mods(subreddit):
+	mods = subreddit.moderator()
+	result = []
+	for mod in mods:
+		result.append(mod.name)
+	return result
+
+def is_root_comment(comment):
+	if comment.parent_id == comment.link_id:
+		return True
+	else:
+		return False
 
 def did_reply_comment(comment, username=username, require_root=True):
 	replies = comment.replies
