@@ -129,7 +129,7 @@ args = tools.get_args(
 		},
 
 		{
-			'name': 'comment_limit',
+			'name': 'comment limit',
 			'target_type': int,
 			'input_args': {
 				'invalid_message': 'Comment limit must be a positive integer.',
@@ -137,6 +137,17 @@ args = tools.get_args(
 			},
 			'condition': lambda x: x > 0,
 			'default': 1000,
+		},
+
+		{
+			'name': 'max age (hours)',
+			'target_type': float,
+			'input_args': {
+				'invalid_message': 'Max age must be a positive number.',
+				'cancel': 'default'
+			},
+			'condition': lambda x: x > 0,
+			'default': 24.0,
 		}
 	], False)
 
@@ -145,7 +156,8 @@ print("Specified song: " + args['song'])
 
 subreddit = reddit_tools.reddit.subreddit(args['subreddit'])
 song_name = args['song']
-comment_limit = args['comment_limit']
+comment_limit = args['comment limit']
+max_age_hours = args['max age (hours)']
 
 print("Getting subreddit moderators")
 mods = reddit_tools.get_mods(subreddit)
@@ -203,28 +215,29 @@ print(f"Got {total_comments} comments in {str(time.time() - start_time)} seconds
 print("Handling comments")
 start_time = time.time()
 for comment in comments:
-	cont = False
+	#Don't handle the comment if it's too old
+	if comment.created_utc < time.time() - max_age_hours * 3600:
+		print(f"Found comment {comment.id} that is too old. Skipping.")
+		continue
+
 	#Don't handle the comment if it is a root comment made by a moderator
 	if comment.author.name in mods and reddit_tools.is_root_comment(comment):
 		print(f"Found root comment '{comment.id}' made by a moderator. Skipping...")
-		cont = True
+		continue
 
 	#Don't handle the comment if it is  made by a blacklisted user
 	if comment.author.name in user_blacklist:
 		print(f"Found comment '{comment.id}' made by a blacklisted user (u/{comment.author}). Skipping...")
-		cont = True
+		continue
 
 	#Don't handle the comment if it's made by the bot
 	if comment.author.name == reddit_tools.username:
 		print(f"Found comment '{comment.id}' by this bot. Skipping...")
-		cont = True
+		continue
 
 	#Don't handle the comment if it has already been replied to
 	if reddit_tools.did_reply_comment(comment):
 		print(f"Found comment '{comment.id}' already replied to. Skipping...")
-		cont = True
-	
-	if cont:
 		continue
 	
 	#print(f"Found comment '{comment.id}' by '{comment.author.name}'. Body:")
