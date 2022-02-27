@@ -137,16 +137,28 @@ clean_lyrics = get_clean_lyrics(song_name)
 print("Getting comments")
 start_time = time.time()
 comments = reddit_tools.get_comments(subreddit, comment_limit)
-print(f"Got {len(comments)} comments in {str(time.time() - start_time)} seconds")
+total_comments = len(comments)
+handled_comments = 0
+print(f"Got {total_comments} comments in {str(time.time() - start_time)} seconds")
+
+#Loop through the comments. Time how long this takes.
+print("Handling comments")
+start_time = time.time()
 for comment in comments:
+	#Don't handle the comment if it's made by the bot
 	if comment.author == reddit_tools.username:
 		print(f"Found comment '{comment.id}' by this bot. Skipping...")
 		continue
 
+	#Don't handle the comment if it has already been replied to
 	if reddit_tools.did_reply_comment(comment):
 		print(f"Found comment '{comment.id}' already replied to. Skipping...")
 		continue
-
+	
 	#print(f"Found comment '{comment.id}' by '{comment.author.name}'. Body:")
 	formatted_body = clean_up_text(comment.body.replace('\n', '\n\t'))
 	#print(f"\t{formatted_body}")
+	handled_comments += 1
+
+ignored_comments = total_comments - handled_comments
+print(f"Handled {handled_comments} out of {total_comments} ({ignored_comments} ignored; {(handled_comments/handled_comments) * 100}% coverage) comments in {str(time.time() - start_time)} seconds")
