@@ -11,6 +11,7 @@ except:
 version = '0.1'
 
 username = '00PT_TestBot'
+owner = "00PT"
 test_subreddit = '00PTBotTest'
 reddit = praw.Reddit('bot1')
 

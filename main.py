@@ -104,7 +104,36 @@ def update_user_blacklist(user_blacklist):
 		for user in user_blacklist:
 			f.write(user + '\n')
 
-song_list = get_file_contents('songs.txt')
+def strip_lines(string):
+	#Strip leading and trailing whitespace
+	string = string.strip()
+	lines = string.split('\n')
+	#Strip leading and trailing whitespace from each line
+	for i in range(len(lines)):
+		lines[i] = lines[i].strip()
+	return "\n".join(lines)
+
+def get_songs():
+	#Determine if the file "songs.txt" exists. Make it if not.
+	if not os.path.exists('songs.txt'):
+		with open('songs.txt', 'w') as f:
+			pass
+
+	result = {}
+	result["list"] = []
+	result["dict"] = {}
+
+	for line in get_file_contents('songs.txt'):
+		if line != "":
+			words = line.split(' ')
+			result["list"].append(words[0])
+			result["dict"][words[0]] = strip_lines(" ".join(words[1:]))
+	
+	return result
+
+songs = get_songs()
+song_list = songs["list"]
+song_friendly_names = songs["dict"]
 
 args = tools.get_args(
 	[
@@ -158,6 +187,33 @@ subreddit = reddit_tools.reddit.subreddit(args['subreddit'])
 song_name = args['song']
 comment_limit = args['comment limit']
 max_age_hours = args['max age (hours)']
+
+default_reply = strip_lines(
+	"""	
+		<next_line>
+
+		---
+
+		**I am a bot.** I have responded to this comment chain with the next lyric to the Encanto song "<friendly_song_name>"
+		according to my best estimate of the current position.
+
+		If you have any questions or suggestions, please contact u/<owner> via private message.
+
+		You may reply with "<opt_out_text>" to opt out of this service.
+
+		Alternatively, you may send a private message to u/<username> with "<opt_out_text>" as the subject to do the same thing.
+
+		If you would ever like to opt in again, either reply to <username>'s comments with "<opt_in_text>"
+		or send a private message to u/<username> with "<opt_in_text>" as the subject.
+
+		My source code is available [here](<source_link>).
+
+		---
+
+		Current position: <current_position>
+		Internal song name: <internal_song_name>
+	"""
+)
 
 print("Getting subreddit moderators")
 mods = reddit_tools.get_mods(subreddit)
@@ -235,13 +291,13 @@ for comment in comments:
 		print(f"Found comment '{comment.id}' by this bot. Skipping...")
 		continue
 
-	#Don't handle the comment if it has already been replied to
-	if reddit_tools.did_reply_comment(comment):
+	#Don't handle the comment if we have already replied to a comment further down the chain
+	if reddit_tools.did_reply_comment(comment, require_root=False):
 		print(f"Found comment '{comment.id}' already replied to. Skipping...")
 		continue
 	
 	#print(f"Found comment '{comment.id}' by '{comment.author.name}'. Body:")
-	formatted_body = clean_up_text(comment.body.replace('\n', '\n\t'))
+	formatted_body = clean_up_text(comment.body)
 	#print(f"\t{formatted_body}")
 	handled_comments += 1
 
