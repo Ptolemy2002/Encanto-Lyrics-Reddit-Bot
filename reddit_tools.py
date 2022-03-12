@@ -1,12 +1,11 @@
 import sys
-import praw
 try:
 	import praw
 except:
 	print("praw not installed")
 	install_command = sys.executable + " -m pip install praw"
 	print("Install command: " + install_command)
-	exit()
+	sys.exit()
 
 version = '0.1'
 
@@ -15,40 +14,21 @@ owner = "00PT"
 test_subreddit = '00PTBotTest'
 reddit = praw.Reddit('bot1')
 
-comment_cache = {}
-submission_cache = {}
-
 def get_comment(comment_id):
-	if comment_id in comment_cache:
-		return comment_cache[comment_id]
-	else:
-		comment = reddit.comment(id=comment_id)
-		comment_cache[comment_id] = comment
-		return comment
+	comment = reddit.comment(id=comment_id)
+	return comment
 
 def get_comments(subreddit, limit=1000):
-	comments = subreddit.comments(limit=limit)
-	result = []
-	for comment in comments:
-		comment_cache[comment.id] = comment
-		result.append(comment)
-	return result
+	comments = list(subreddit.comments(limit=limit))
+	return comments
 
 def get_submission(submission_id):
-	if submission_id in submission_cache:
-		return submission_cache[submission_id]
-	else:
-		submission = reddit.submission(id=submission_id)
-		submission_cache[submission_id] = submission
-		return submission
+	submission = reddit.submission(id=submission_id)
+	return submission
 
 def get_submissions(subreddit, limit=1000):
-	submissions = subreddit.new(limit=limit)
-	result = []
-	for submission in submissions:
-		submission_cache[submission.id] = submission
-		result.append(submission)
-	return result
+	submissions = list(subreddit.new(limit=limit))
+	return submissions
 
 def get_mods(subreddit):
 	mods = subreddit.moderator()
@@ -64,16 +44,18 @@ def is_root_comment(comment):
 		return False
 
 def did_reply_comment(comment, username=username, require_root=True):
-	replies = comment.replies
+	comment.refresh()
+	replies = list(comment.replies)
 	for reply in replies:
 		if reply.author.name == username:
 			return True
 		elif (not require_root) and did_reply_comment(reply, username, False):
 			return True
+
 	return False
 
 def did_reply_submission(submission, username=username, require_root=True):
-	comments = submission.comments
+	comments = list(submission.comments)
 	for comment in comments:
 		if comment.author.name == username:
 			return True
@@ -81,7 +63,7 @@ def did_reply_submission(submission, username=username, require_root=True):
 			return True
 	return False
 
-def get_notifications(type='comment', unread=False):
+def get_notifications(type='comment', unread=False, mark_read=True):
 	notifications = []
 	if unread:
 		notifications = reddit.inbox.unread()
@@ -93,22 +75,31 @@ def get_notifications(type='comment', unread=False):
 		if type == 'comment':
 			if isinstance(notification, praw.models.Comment):
 				result.append(notification)
-				reddit.inbox.mark_read([notification])
+				if mark_read:
+					reddit.inbox.mark_read([notification])
 		elif type == 'submission':
 			if isinstance(notification, praw.models.Submission):
 				result.append(notification)
-				reddit.inbox.mark_read([notification])
+				if mark_read:
+					reddit.inbox.mark_read([notification])
 		elif type == 'message':
 			if isinstance(notification, praw.models.Message):
 				result.append(notification)
-				reddit.inbox.mark_read([notification])
+				if mark_read:
+					reddit.inbox.mark_read([notification])
 		elif type == 'all':
 			result.append(notification)
-			reddit.inbox.mark_read([notification])
+			if mark_read:
+				reddit.inbox.mark_read([notification])
+		elif type == 'mention':
+			for mention in reddit.inbox.mentions():
+				result.append(mention)
+				if mark_read:
+					reddit.inbox.mark_read([mention])
 		else:
 			raise Exception('Invalid notification type: ' + type)
 
-	return result
+	return list(result)
 
 def reply_to_comment(comment, text):
 	comment.reply(text)
