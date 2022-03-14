@@ -52,7 +52,7 @@ for song in songs:
 	for subreddit in subreddits:
 		command = f"{sys.executable} main.py {subreddit} {song} {comment_limit} {max_age_hours}"
 		print("")
-		print("Launching for song '" + song + "' in '" + subreddit + "' subreddit with command:\n\t" + command)
+		print("Launching for song '" + song + "' in '" + subreddit + "' subreddit with command:'" + command + "'")
 		print("")
 		try:
 			os.system(command)
