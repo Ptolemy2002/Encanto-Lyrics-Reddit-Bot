@@ -313,11 +313,11 @@ for comment in reddit_tools.get_notifications("comment", True):
 		if body.lower() == opt_out_text.lower() and not user in user_blacklist:
 			user_blacklist.append(user)
 			print("User " + user + " has opted out of notifications.")
-			reddit_tools.reply_to_comment(comment, "You have opted out of this bot's services. This will end the chain. Have a nice day!")
+			reddit_tools.reply_to_comment(comment, "You have opted out of this bot's services. Have a nice day!")
 		elif body.lower() == opt_in_text.lower() and user in user_blacklist:
 			user_blacklist.remove(user)
 			print("User " + user + " has opted in to notifications.")
-			reddit_tools.reply_to_comment(comment, "You have opted back in to this bot's services. This will end the chain. Have a nice day!")
+			reddit_tools.reply_to_comment(comment, "You have opted back in to this bot's services. Have a nice day!")
 
 #search for messages
 for message in reddit_tools.get_notifications("message", True):
