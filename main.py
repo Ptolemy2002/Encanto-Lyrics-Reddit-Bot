@@ -36,6 +36,8 @@ def clean_up_text(text):
 	text = text.strip()
 	#Convert to lowercase
 	text = text.lower()
+	#Replace a character repeated more than once with a single instance
+	text = re.sub(r'(.)\1+', r'\1', text)
 
 	return text
 
@@ -140,7 +142,7 @@ def get_potential_lyric_indexes(song, lyric):
 	clean_lyric = clean_up_text(lyric)
 	for i in range(len(song)):
 		line = song[i]
-		if line == clean_lyric:
+		if clean_lyric == line:
 			result.append(i)
 	return result
 
@@ -280,7 +282,7 @@ comment_limit = args['comment limit']
 max_age_hours = args['max age (hours)']
 
 default_reply = strip_lines(
-	"""	
+	"""
 		<next_line>
 
 		---
@@ -298,8 +300,27 @@ default_reply = strip_lines(
 	"""
 )
 
-def format_reply(next_line, current_position, internal_song_name, friendly_song_name, help_link, owner, username):
-	reply = default_reply.replace('<next_line>', next_line)
+end_reply = strip_lines(
+	"""
+		That's all the lyrics I have for this song.
+
+		---
+
+		**I am a bot.** This comment chain was for the Encanto song "<friendly_song_name>".
+
+		For more information, click [here](<help_link>).
+
+		---
+
+		Current position: <current_position>
+
+		Internal song name: <internal_song_name>
+	"""
+)
+help_link = "https://www.google.com"
+
+def format_reply(next_line, current_position, internal_song_name, friendly_song_name, help_link, owner, username, reply_base=default_reply):
+	reply = reply_base.replace('<next_line>', next_line)
 	reply = reply.replace('<current_position>', str(current_position))
 	reply = reply.replace('<internal_song_name>', internal_song_name)
 	reply = reply.replace('<friendly_song_name>', friendly_song_name)
@@ -311,8 +332,6 @@ def format_reply(next_line, current_position, internal_song_name, friendly_song_
 
 """print("Getting subreddit moderators")
 mods = reddit_tools.get_mods(subreddit)"""
-
-requests_used = reddit_tools.reddit.auth.limits['used']
 
 print("Getting user blacklist")
 user_blacklist = get_user_blacklist()
@@ -351,6 +370,8 @@ for message in reddit_tools.get_notifications("message", True):
 
 update_user_blacklist(user_blacklist)
 
+requests_used = reddit_tools.reddit.auth.limits['used']
+
 original_lyrics = get_original_lyrics(song_name)
 clean_lyrics = get_clean_lyrics(song_name)
 
@@ -378,8 +399,9 @@ for comment in comments:
 		age = (time.time() - comment.created_utc) / 3600
 		#Don't handle the comment if it's too old
 		if age > max_age_hours:
-			print(f"Found comment '{comment.id}' that is too old ({age} hours). Skipping.")
-			continue
+			print(f"Found comment '{comment.id}' that is too old ({age} hours). Stopping here...")
+			#Stop processing additional comments, since all the rest are going to be too old
+			break
 
 		"""#Don't handle the comment if it is a root comment made by a moderator
 		if comment.author.name in mods and reddit_tools.is_root_comment(comment):
@@ -418,15 +440,23 @@ for comment in comments:
 				else:
 					#current_position += 1
 					if current_position == len(clean_lyrics) - 1:
-						print(f"Found match at the end of the song. Skipping...")
+						print(f"Found match at the end of the song.")
+						print("replying to indicate this...")
+						reply = format_reply(original_lyrics[current_position], current_position, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, reply_base=end_reply)
+						reddit_tools.reply_to_comment(comment, reply)
 						handled_comments += 1
 						continue
 
 					print(f"Match Position: {current_position}")
 					print("replying...")
 					next_line = original_lyrics[current_position + 1]
-					reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], "https://www.google.com", reddit_tools.owner, reddit_tools.username)
+					reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username)
 					reddit_tools.reply_to_comment(comment, reply)
+					if (current_position + 1) == len(clean_lyrics) - 1:
+						print(f"Just replied with the last line of the song.")
+						print("replying to indicate this...")
+						reply = format_reply(original_lyrics[current_position + 1], current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, reply_base=end_reply)
+						reddit_tools.reply_to_comment(comment, reply)
 
 					handled_comments += 1
 					replied_comments += 1
@@ -436,6 +466,7 @@ for comment in comments:
 				continue
 		else:
 			print(f"This comment doesn't seem to match any lyrics. Skipping...")
+			handled_comments += 1
 	else:
 		print(f"Found comment '{comment.id}' that does not have an author. Skipping...")
 
@@ -445,7 +476,9 @@ print(f"limit info: {limit_info}")
 seconds_until_reset = (limit_info['reset_timestamp'] - time.time())
 #split into minutes and seconds
 minutes = int(math.floor(seconds_until_reset / 60))
-seconds = int(round(seconds_until_reset % 60))
+seconds = str(int(round(seconds_until_reset % 60)))
+if len(seconds) == 1:
+	seconds = "0" + seconds
 print(f"Approximate time until reset (upper bound): {minutes}:{seconds}")
 
 ignored_comments = total_comments - handled_comments
