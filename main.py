@@ -1,6 +1,6 @@
-from secrets import randbelow
 import reddit_tools
 import os
+import sys
 import tools
 import re
 import time
@@ -12,7 +12,9 @@ def get_file_contents(file_name):
 		result = []
 		with open(file_name, 'r') as f:
 			for line in f:
-				result.append(line.strip())
+				line = line.strip()
+				if not line.startswith('#'):
+					result.append(line)
 		file_contents_cache[file_name] = result
 		return result
 	else:
@@ -74,7 +76,9 @@ def get_clean_lyrics(song):
 		print("Ganerating clean lyrics for '" + song + "'")
 		clean_lyrics = []
 		for line in lyrics:
-			clean_lyrics.append(clean_up_text(line))
+			line = line.strip()
+			if not line.startswith('#'):
+				clean_lyrics.append(clean_up_text(line))
 		
 		#Write the cleaned lyrics to the file
 		with open(file_name, 'w') as f:
@@ -123,7 +127,7 @@ def get_songs():
 	result["dict"] = {}
 
 	for line in get_file_contents('songs.txt'):
-		if line != "":
+		if line != "" and not line.startswith('#'):
 			words = line.split(' ')
 			result["list"].append(words[0])
 			result["dict"][words[0]] = strip_lines(" ".join(words[1:]))
@@ -291,8 +295,8 @@ def format_reply(next_line, current_position, internal_song_name, friendly_song_
 	return reply
 	
 
-print("Getting subreddit moderators")
-mods = reddit_tools.get_mods(subreddit)
+"""print("Getting subreddit moderators")
+mods = reddit_tools.get_mods(subreddit)"""
 
 print("Getting user blacklist")
 user_blacklist = get_user_blacklist()
@@ -341,6 +345,11 @@ comments = reddit_tools.get_comments(subreddit, comment_limit)
 #sort comments by age (newest first)
 comments = sorted(comments, key=lambda x: x.created_utc, reverse=True)
 total_comments = len(comments)
+
+if total_comments == 0:
+	print("No comments found.")
+	sys.exit()
+
 handled_comments = 0
 replied_comments = 0
 print(f"Got {total_comments} comments in {str(time.time() - start_time)} seconds")
