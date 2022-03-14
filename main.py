@@ -4,6 +4,7 @@ import sys
 import tools
 import re
 import time
+import math
 
 file_contents_cache = {}
 
@@ -183,8 +184,10 @@ def get_lyric_extent(song, song_name, comment, index, username):
 	
 	return current_extent
 
-def get_lyric_index(song, song_name, comment, username):
-	potential_indexes = get_potential_lyric_indexes(song, comment.body)
+def get_lyric_index(song, song_name, comment, username, potential_indexes=None):
+	if not potential_indexes:
+		potential_indexes = get_potential_lyric_indexes(song, comment.body)
+
 	if len(potential_indexes) == 0:
 		return None
 	elif len(potential_indexes) == 1:
@@ -206,6 +209,17 @@ def get_lyric_index(song, song_name, comment, username):
 		for i in range(len(extent_array)):
 			if extent_array[i]["extent"] == max_extent:
 				return extent_array[i]["index"]
+
+def is_bottom_chain(song, comment):
+	comment.refresh()
+	if comment.replies is None:
+		return True
+	else:
+		for reply in comment.replies:
+			potential_indexes = get_potential_lyric_indexes(song, clean_up_text(reply.body))
+			if len(potential_indexes) > 0:
+				return False
+		return True
 			
 
 songs = get_songs()
@@ -297,6 +311,8 @@ def format_reply(next_line, current_position, internal_song_name, friendly_song_
 
 """print("Getting subreddit moderators")
 mods = reddit_tools.get_mods(subreddit)"""
+
+requests_used = reddit_tools.reddit.auth.limits['used']
 
 print("Getting user blacklist")
 user_blacklist = get_user_blacklist()
@@ -391,36 +407,47 @@ for comment in comments:
 
 		print("Found comment '" + comment.id + "' by '" + comment.author.name + "' that could be a match.")
 		print("Formatted Text: " + formatted_body)
-		current_position = get_lyric_index(clean_lyrics, song_name, comment, reddit_tools.username)
-		if current_position == None:
-			print(f"No match found. Skipping...")
-			handled_comments += 1
-			continue
-		else:
-			#current_position += 1
-			if current_position == len(clean_lyrics) - 1:
-				print(f"Found match at the end of the song. Skipping...")
+		potential_indexes = get_potential_lyric_indexes(clean_lyrics, formatted_body)
+		if len(potential_indexes) > 0:
+			if is_bottom_chain(clean_lyrics, comment):
+				current_position = get_lyric_index(clean_lyrics, song_name, comment, reddit_tools.username, potential_indexes=potential_indexes)
+				if current_position == None:
+					print(f"No match found. Skipping...")
+					handled_comments += 1
+					continue
+				else:
+					#current_position += 1
+					if current_position == len(clean_lyrics) - 1:
+						print(f"Found match at the end of the song. Skipping...")
+						handled_comments += 1
+						continue
+
+					print(f"Match Position: {current_position}")
+					print("replying...")
+					next_line = original_lyrics[current_position + 1]
+					reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], "https://www.google.com", reddit_tools.owner, reddit_tools.username)
+					reddit_tools.reply_to_comment(comment, reply)
+
+					handled_comments += 1
+					replied_comments += 1
+			else:
+				print(f"This comment is not at the bottom of the chain. Skipping...")
 				handled_comments += 1
 				continue
-
-			print(f"Match Position: {current_position}")
-			print("replying...")
-			next_line = original_lyrics[current_position + 1]
-			reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], "https://www.google.com", reddit_tools.owner, reddit_tools.username)
-			reddit_tools.reply_to_comment(comment, reply)
-			
-			current_comment = comment
-			while not reddit_tools.is_root_comment(current_comment):
-				current_comment = current_comment.parent()
-
-			handled_comments += 1
-			replied_comments += 1
+		else:
+			print(f"This comment doesn't seem to match any lyrics. Skipping...")
 	else:
 		print(f"Found comment '{comment.id}' that does not have an author. Skipping...")
 
 
 limit_info = reddit_tools.reddit.auth.limits
 print(f"limit info: {limit_info}")
+seconds_until_reset = (limit_info['reset_timestamp'] - time.time())
+#split into minutes and seconds
+minutes = int(math.floor(seconds_until_reset / 60))
+seconds = int(round(seconds_until_reset % 60))
+print(f"Approximate time until reset (upper bound): {minutes}:{seconds}")
 
 ignored_comments = total_comments - handled_comments
-print(f"Handled to {handled_comments} out of {total_comments} ({ignored_comments} ignored; {replied_comments} replied to; {(handled_comments/total_comments) * 100}% coverage) comments in {str(time.time() - start_time)} seconds")
+print(f"Handled {handled_comments} out of {total_comments} ({ignored_comments} ignored; {replied_comments} replied to; {(handled_comments/total_comments) * 100}% coverage) comments in {str(time.time() - start_time)} seconds")
+print(f"Used a total of {limit_info['used'] - requests_used} requests in this instance of the script.")
