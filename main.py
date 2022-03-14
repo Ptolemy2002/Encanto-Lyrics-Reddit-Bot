@@ -139,18 +139,11 @@ def get_potential_lyric_indexes(song, lyric):
 			result.append(i)
 	return result
 
-def get_lyric_index(song, song_name, comment, username):
-	potential_indexes = get_potential_lyric_indexes(song, comment.body)
-
-	if len(potential_indexes) == 0:
-		print("No potential lyric index found.")
-		return None
-	elif reddit_tools.is_root_comment(comment):
-		return potential_indexes[0]
-
+def get_lyric_extent(song, song_name, comment, index, username):
 	current_comment = comment
-	i = 0
-	while len(potential_indexes) > 1:
+	current_index = index
+	current_extent = 0
+	while current_index > 0:
 		if current_comment.author.name == username:
 			#find the current position using regex "Current position: <current_position>"
 			current_position = re.search(r'Current position: (\d+)', current_comment.body)
@@ -158,8 +151,8 @@ def get_lyric_index(song, song_name, comment, username):
 				print("Found one of this bot's comments, but it doesn't have a current position. The position cannot be determined.")
 				return None
 			else:
-				current_position = int(current_position.group(1)) + i
-				if current_position in potential_indexes:
+				current_position = current_position.group(1)
+				if current_position == current_index:
 					#find the internal song name using regex "Internal song name: <internal_song_name>"
 					internal_song_name = re.search(r'Internal song name: (\w+)', current_comment.body)
 					if internal_song_name is None:
@@ -172,28 +165,43 @@ def get_lyric_index(song, song_name, comment, username):
 						return None
 				else:
 					return None
-		
-		for index in potential_indexes:
-			line = song[potential_indexes.index(index)]
 
-			if line != clean_up_text(current_comment.body):
-				potential_indexes.remove(index)
+		if clean_up_text(current_comment.body) == song[current_index]:
+			current_extent += 1
+		else:
+			return current_extent
 
-
-		current_comment = current_comment.parent()
-		i += 1
 		if reddit_tools.is_root_comment(current_comment):
 			break
-		
-		for j in range(len(potential_indexes) - 1):
-			potential_indexes[j] -= 1
-			if potential_indexes[j] < 0:
-				potential_indexes.remove(potential_indexes[j])
 
-	if len(potential_indexes) > 1:
-		print("Found multiple potential lyric indexes. Using the first one.")
+		current_comment = current_comment.parent()
+		current_index -= 1
+	
+	return current_extent
 
-	return potential_indexes[0]
+def get_lyric_index(song, song_name, comment, username):
+	potential_indexes = get_potential_lyric_indexes(song, comment.body)
+	if len(potential_indexes) == 0:
+		return None
+	elif len(potential_indexes) == 1:
+		return potential_indexes[0]
+	else:
+		extent_array = []
+		max_extent = 0
+		for index in potential_indexes:
+			extent = get_lyric_extent(song, song_name, comment, index, username)
+			if extent is not None:
+				extent_array.append({"extent": extent, "index": index})
+				if extent > max_extent:
+					max_extent = extent
+
+		#sort extent_array by index lowest to highest
+		extent_array.sort(key=lambda x: x["index"])
+
+		#return the index of the first element with the maximum extent
+		for i in range(len(extent_array)):
+			if extent_array[i]["extent"] == max_extent:
+				return extent_array[i]["index"]
 			
 
 songs = get_songs()
@@ -295,29 +303,32 @@ opt_out_text = "!optout"
 
 #search for comments
 for comment in reddit_tools.get_notifications("comment", True):
-	body = comment.body
-	user = comment.author.name
-	if body.lower() == opt_out_text.lower() and not user in user_blacklist:
-		user_blacklist.append(user)
-		print("User " + user + " has opted out of notifications.")
-		reddit_tools.reply_to_comment(comment, "You have opted out of this bot's services. This will end the chain. Have a nice day!")
-	elif body.lower() == opt_in_text.lower() and user in user_blacklist:
-		user_blacklist.remove(user)
-		print("User " + user + " has opted in to notifications.")
-		reddit_tools.reply_to_comment(comment, "You have opted back in to this bot's services. This will end the chain. Have a nice day!")
+	if comment.author:
+		body = comment.body
+		user = comment.author.name
+		if body.lower() == opt_out_text.lower() and not user in user_blacklist:
+			user_blacklist.append(user)
+			print("User " + user + " has opted out of notifications.")
+			reddit_tools.reply_to_comment(comment, "You have opted out of this bot's services. This will end the chain. Have a nice day!")
+		elif body.lower() == opt_in_text.lower() and user in user_blacklist:
+			user_blacklist.remove(user)
+			print("User " + user + " has opted in to notifications.")
+			reddit_tools.reply_to_comment(comment, "You have opted back in to this bot's services. This will end the chain. Have a nice day!")
 
 #search for messages
 for message in reddit_tools.get_notifications("message", True):
-	body = message.subject
-	user = message.author.name
-	if body.lower() == opt_out_text.lower() and not user in user_blacklist:
-		user_blacklist.append(user)
-		print("User " + user + " has opted out of notifications.")
-		reddit_tools.reply_to_message(message, "You have opted out of this bot's services. Have a nice day!")
-	elif body.lower() == opt_in_text.lower() and user in user_blacklist:
-		user_blacklist.remove(user)
-		print("User " + user + " has opted in to notifications.")
-		reddit_tools.reply_to_message(message, "You have opted back in to this bot's services. Have a nice day!")
+	if message.author:
+		body = message.subject
+		user = message.author.name
+		if body.lower() == opt_out_text.lower() and not user in user_blacklist:
+			user_blacklist.append(user)
+			print("User " + user + " has opted out of notifications.")
+			reddit_tools.reply_to_message(message, "You have opted out of this bot's services. Have a nice day!")
+		elif body.lower() == opt_in_text.lower() and user in user_blacklist:
+			user_blacklist.remove(user)
+			print("User " + user + " has opted in to notifications.")
+			reddit_tools.reply_to_message(message, "You have opted back in to this bot's services. Have a nice day!")
+
 update_user_blacklist(user_blacklist)
 
 original_lyrics = get_original_lyrics(song_name)
@@ -327,66 +338,80 @@ clean_lyrics = get_clean_lyrics(song_name)
 print("Getting comments")
 start_time = time.time()
 comments = reddit_tools.get_comments(subreddit, comment_limit)
-#sort comments by newest to oldest
-comments.sort(key=lambda x: x.created_utc, reverse=True)
+#sort comments by age (newest first)
+comments = sorted(comments, key=lambda x: x.created_utc, reverse=True)
 total_comments = len(comments)
 handled_comments = 0
+replied_comments = 0
 print(f"Got {total_comments} comments in {str(time.time() - start_time)} seconds")
 
 #Loop through the comments. Time how long this takes.
 print("Handling comments")
 start_time = time.time()
 for comment in comments:
-	#Don't handle the comment if it's too old
-	if comment.created_utc < time.time() - max_age_hours * 3600:
-		print(f"Found comment '{comment.id}' that is too old. Skipping.")
-		continue
-
-	"""#Don't handle the comment if it is a root comment made by a moderator
-	if comment.author.name in mods and reddit_tools.is_root_comment(comment):
-		print(f"Found root comment '{comment.id}' made by a moderator. Skipping...")
-		continue"""
-
-	#Don't handle the comment if it is  made by a blacklisted user
-	if comment.author.name in user_blacklist:
-		print(f"Found comment '{comment.id}' made by a blacklisted user (u/{comment.author}). Skipping...")
-		continue
-
-	#Don't handle the comment if it's made by the bot
-	if comment.author.name == reddit_tools.username:
-		print(f"Found comment '{comment.id}' by this bot. Skipping...")
-		continue
-
-	#Don't handle the comment if we have already replied to a comment further down the chain
-	if reddit_tools.did_reply_comment(comment, require_root=False):
-		print(f"Found comment '{comment.id}' already replied to. Skipping...")
-		continue
-	
-	#print(f"Found comment '{comment.id}' by '{comment.author.name}'. Body:")
-	formatted_body = clean_up_text(comment.body)
-	#print(f"\t{formatted_body}")
-
-	print("Found comment '" + comment.id + "' by '" + comment.author.name + "' that could be a match.")
-	print("Formatted Text: " + formatted_body)
-	current_position = get_lyric_index(clean_lyrics, song_name, comment, reddit_tools.username)
-	if current_position == None:
-		print(f"No match found. Skipping...")
-		continue
-	else:
-		if current_position == len(clean_lyrics) - 1:
-			print(f"Found match at the end of the song. Skipping...")
+	if comment.author:
+		age = (time.time() - comment.created_utc) / 3600
+		#Don't handle the comment if it's too old
+		if age > max_age_hours:
+			print(f"Found comment '{comment.id}' that is too old ({age} hours). Skipping.")
 			continue
 
-		handled_comments += 1
-		print(f"Match Position: {current_position}")
-		print("replying...")
-		next_line = original_lyrics[current_position + 1]
-		reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], "https://www.google.com", reddit_tools.owner, reddit_tools.username)
-		reddit_tools.reply_to_comment(comment, reply)
+		"""#Don't handle the comment if it is a root comment made by a moderator
+		if comment.author.name in mods and reddit_tools.is_root_comment(comment):
+			print(f"Found root comment '{comment.id}' made by a moderator. Skipping...")
+			continue"""
+
+		#Don't handle the comment if it is  made by a blacklisted user
+		if comment.author.name in user_blacklist:
+			print(f"Found comment '{comment.id}' made by a blacklisted user (u/{comment.author}). Skipping...")
+			continue
+
+		#Don't handle the comment if it's made by the bot
+		if comment.author.name == reddit_tools.username:
+			print(f"Found comment '{comment.id}' by this bot. Skipping...")
+			continue
+
+		#Don't handle the comment if we have already replied to a comment further down the chain
+		if reddit_tools.did_reply_comment(comment, require_root=False):
+			print(f"Found comment '{comment.id}' already replied to. Skipping...")
+			continue
+		
+		#print(f"Found comment '{comment.id}' by '{comment.author.name}'. Body:")
+		formatted_body = clean_up_text(comment.body)
+		#print(f"\t{formatted_body}")
+
+		print("Found comment '" + comment.id + "' by '" + comment.author.name + "' that could be a match.")
+		print("Formatted Text: " + formatted_body)
+		current_position = get_lyric_index(clean_lyrics, song_name, comment, reddit_tools.username)
+		if current_position == None:
+			print(f"No match found. Skipping...")
+			handled_comments += 1
+			continue
+		else:
+			#current_position += 1
+			if current_position == len(clean_lyrics) - 1:
+				print(f"Found match at the end of the song. Skipping...")
+				handled_comments += 1
+				continue
+
+			print(f"Match Position: {current_position}")
+			print("replying...")
+			next_line = original_lyrics[current_position + 1]
+			reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], "https://www.google.com", reddit_tools.owner, reddit_tools.username)
+			reddit_tools.reply_to_comment(comment, reply)
+			
+			current_comment = comment
+			while not reddit_tools.is_root_comment(current_comment):
+				current_comment = current_comment.parent()
+
+			handled_comments += 1
+			replied_comments += 1
+	else:
+		print(f"Found comment '{comment.id}' that does not have an author. Skipping...")
 
 
 limit_info = reddit_tools.reddit.auth.limits
 print(f"limit info: {limit_info}")
 
 ignored_comments = total_comments - handled_comments
-print(f"Handled {handled_comments} out of {total_comments} ({ignored_comments} ignored; {(handled_comments/total_comments) * 100}% coverage) comments in {str(time.time() - start_time)} seconds")
+print(f"Handled to {handled_comments} out of {total_comments} ({ignored_comments} ignored; {replied_comments} replied to; {(handled_comments/total_comments) * 100}% coverage) comments in {str(time.time() - start_time)} seconds")

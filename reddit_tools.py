@@ -9,7 +9,7 @@ except:
 
 version = '0.1'
 
-username = '00PT_TestBot'
+username = 'Encanto_LyricBot'
 owner = "00PT"
 test_subreddit = '00PTBotTest'
 reddit = praw.Reddit('bot1')
@@ -47,20 +47,22 @@ def did_reply_comment(comment, username=username, require_root=True):
 	comment.refresh()
 	replies = list(comment.replies)
 	for reply in replies:
-		if reply.author.name == username:
-			return True
-		elif (not require_root) and did_reply_comment(reply, username, False):
-			return True
+		if reply.author:
+			if reply.author.name == username:
+				return True
+			elif (not require_root) and did_reply_comment(reply, username, False):
+				return True
 
 	return False
 
 def did_reply_submission(submission, username=username, require_root=True):
 	comments = list(submission.comments)
 	for comment in comments:
-		if comment.author.name == username:
-			return True
-		elif (not require_root) and did_reply_comment(comment, username, False):
-			return True
+		if comment.author:
+			if comment.author.name == username:
+				return True
+			elif (not require_root) and did_reply_comment(comment, username, False):
+				return True
 	return False
 
 def get_notifications(type='comment', unread=False, mark_read=True):
@@ -109,3 +111,11 @@ def reply_to_submission(submission, text):
 
 def reply_to_message(message, text):
 	message.reply(text)
+
+def get_comment_level(comment):
+	level = 0
+	parent = comment
+	while not is_root_comment(parent):
+		level += 1
+		parent = parent.parent()
+	return level
