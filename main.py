@@ -150,7 +150,7 @@ def get_lyric_extent(song, song_name, comment, index, username):
 	current_comment = comment
 	current_index = index
 	current_extent = 0
-	while current_index > 0:
+	while current_index >= 0:
 		if current_comment.author.name == username:
 			#find the current position using regex "Current position: <current_position>"
 			current_position = re.search(r'Current position: (\d+)', current_comment.body)
