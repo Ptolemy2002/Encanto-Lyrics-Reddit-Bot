@@ -1,6 +1,9 @@
 
 import os
 import sys
+import time
+
+print("Attempting launch on " + time.strftime("%Y-%m-%d %H:%M:%S") + "...")
 
 #get the path of this file
 path = os.path.dirname(os.path.realpath(__file__))
