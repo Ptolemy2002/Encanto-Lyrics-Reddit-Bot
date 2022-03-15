@@ -2,9 +2,12 @@
 import os
 import sys
 
+#get the path of this file
+path = os.path.dirname(os.path.realpath(__file__))
+
 def get_file_contents(file_name):
 	result = []
-	with open(file_name, 'r') as f:
+	with open(path + "/" + file_name, 'r') as f:
 		for line in f:
 			line = line.strip()
 			if not line.startswith('#'):
@@ -47,9 +50,6 @@ max_age_hours = 1
 
 launch_count = 0
 launch_tries = 0
-
-#get the path of this file
-path = os.path.dirname(os.path.realpath(__file__))
 
 for song in songs:
 	for subreddit in subreddits:
