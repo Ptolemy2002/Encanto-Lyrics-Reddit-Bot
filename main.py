@@ -30,6 +30,10 @@ def clean_up_text(text):
 	text = re.sub(r'\'', '', text)
 	#Replace one or more dashes with a single space
 	text = re.sub(r'\-+', ' ', text)
+	"""#remove common words
+	common_words = ["the", "an", "and", "but", "for", "nor", "so", "yet", "at", "by", "for", "from", "in", "into", "like", "of", "off", "on", "onto", "to", "up", "via", "with"]
+	for word in common_words:
+		text = re.sub(r'\b' + word + r'\b', '', text)"""
 	#Replace all whitespace with a single space
 	text = re.sub(r'\s+', ' ', text)
 	#Strip leading and trailing spaces
@@ -246,7 +250,7 @@ args = tools.get_args(
 		},
 		{
 			'name': 'song',
-			'target_type': lambda x : clean_up_text(x) if type(x) is str else None,
+			'target_type': str,
 			'input_args': {
 				'invalid_message': 'Song must be within the list of songs as specified in the songs.txt file.'
 			},
