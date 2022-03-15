@@ -53,7 +53,7 @@ path = os.path.dirname(os.path.realpath(__file__))
 
 for song in songs:
 	for subreddit in subreddits:
-		command = f"{sys.executable} {path}/main.py {subreddit} {song} {comment_limit} {max_age_hours}"
+		command = f"{sys.executable} \"{path}/main.py\" {subreddit} {song} {comment_limit} {max_age_hours}"
 		print("")
 		print("Launching for song '" + song + "' in '" + subreddit + "' subreddit with command:'" + command + "'")
 		print("")
