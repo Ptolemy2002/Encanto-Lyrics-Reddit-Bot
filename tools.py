@@ -1,8 +1,13 @@
 import sys
 import os
 import errno
-import unicodedata
-import base64
+try:
+    import unidecode
+except ImportError:
+    print("You need to install unidecode to use this program.")
+    install_command = sys.executable + " -m pip install unidecode"
+    print("Install command: " + install_command)
+    sys.exit(1)
 from sre_constants import error
 import re
 import json
@@ -546,9 +551,7 @@ def smart_equals(s1, s2):
     text - The input String
 """
 def strip_accents(text):
-    text = unicodedata.normalize('NFD', text).encode("ascii", "ignore").decode("ascii")
-    text = base64.a85encode(text.encode("utf-8"))
-    text = base64.a85decode(text).decode("utf-8")
+    text = unidecode.unidecode(text)
     return str(text)
 
 # Sadly, Python fails to provide the following magic number for us.
