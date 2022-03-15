@@ -42,7 +42,7 @@ def get_subreddits():
 
 songs = get_songs()
 subreddits = get_subreddits()
-comment_limit = 500
+comment_limit = 1000
 max_age_hours = 1
 
 launch_count = 0
