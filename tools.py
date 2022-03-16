@@ -551,7 +551,8 @@ def smart_equals(s1, s2):
     text - The input String
 """
 def strip_accents(text):
-    return unicodedata.normalize('NFC', text)
+    return ''.join(c for c in unicodedata.normalize('NFD', text)
+        if unicodedata.category(c) != 'Mn')
 
 # Sadly, Python fails to provide the following magic number for us.
 ERROR_INVALID_NAME = 123
