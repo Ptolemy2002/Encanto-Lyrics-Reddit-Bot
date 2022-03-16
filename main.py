@@ -159,27 +159,25 @@ def get_lyric_extent(song, song_name, comment, index, username):
 			#find the current position using regex "Current position: <current_position>"
 			current_position = re.search(r'Current position: (\d+)', current_comment.body)
 			if current_position is None:
-				print("Found one of this bot's comments, but it doesn't have a current position. The position cannot be determined. Continuing...")
-				current_comment = current_comment.parent()
-				continue
+				print("Found one of this bot's comments, but it doesn't have a current position. This marks the end of the chain.")
+				return 0
 			else:
 				current_position = current_position.group(1)
 				if current_position == current_index:
 					#find the internal song name using regex "Internal song name: <internal_song_name>"
 					internal_song_name = re.search(r'Internal song name: (\w+)', current_comment.body)
 					if internal_song_name is None:
-						print("Found one of this bot's comments, but it doesn't have an internal song name. The position cannot be determined. Continuing...")
-						current_comment = current_comment.parent()
-						continue
+						print("Found one of this bot's comments, but it doesn't have an internal song name. This marks the end of the chain.")
+						return current_extent - 1
 					elif internal_song_name.group(1) == song_name:
 						#As we have guaranteed that this comment is the one that matches the chain, we return infinity so that it will be recognized as the highest extent
 						return math.inf
 					else:
-						print("Found one of this bot's comments, but it doesn't have the same internal song name as was specified. The position cannot be determined.")
-						current_comment = current_comment.parent()
-						continue
+						print("Found one of this bot's comments, but it doesn't have the same internal song name as was specified. This marks the end of the chain.")
+						return current_extent - 1						
 				else:
-					return current_extent
+					print("Found one of this bot's comments, but the position was not the same as was expected. This marks the end of the chain.")
+					return current_extent - 1
 
 		if clean_up_text(current_comment.body) == song[current_index]:
 			current_extent += 1
@@ -298,7 +296,7 @@ default_reply = strip_lines(
 		**I am a bot.** I have responded to this comment chain with the next lyric to the Encanto song "<friendly_song_name>"
 		according to my best estimate of the current position.
 
-		For more information, click [here](<help_link>).
+		For more information (including how to report a bug or opt out), click [here](<help_link>).
 
 		---
 
@@ -316,7 +314,7 @@ end_reply = strip_lines(
 
 		**I am a bot.** This comment chain was for the Encanto song "<friendly_song_name>".
 
-		For more information, click [here](<help_link>).
+		For more information (including how to report a bug or opt out), click [here](<help_link>).
 
 		---
 
