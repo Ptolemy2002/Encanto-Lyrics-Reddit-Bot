@@ -162,7 +162,7 @@ def get_lyric_extent(song, song_name, comment, index, username):
 				print("Found one of this bot's comments, but it doesn't have a current position. This marks the end of the chain.")
 				return 0
 			else:
-				current_position = current_position.group(1)
+				current_position = int(current_position.group(1))
 				if current_position == current_index:
 					#find the internal song name using regex "Internal song name: <internal_song_name>"
 					internal_song_name = re.search(r'Internal song name: (\w+)', current_comment.body)
