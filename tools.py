@@ -2,11 +2,11 @@ import sys
 import os
 import errno
 try:
-    import unidecode
+    import unicodedata
 except ImportError:
-    print("You need to install unidecode to use this program.")
-    install_command = sys.executable + " -m pip install unidecode"
-    print("Install command: " + install_command)
+    print("Please install the unicodedata module.")
+    command = f"{sys.executable} -m pip install unicodedata"
+    print(f"To install unicodedata, run: {command}")
     sys.exit(1)
 from sre_constants import error
 import re
@@ -551,8 +551,7 @@ def smart_equals(s1, s2):
     text - The input String
 """
 def strip_accents(text):
-    text = unidecode.unidecode(text)
-    return str(text)
+    return unicodedata.normalize('NFC', text)
 
 # Sadly, Python fails to provide the following magic number for us.
 ERROR_INVALID_NAME = 123
