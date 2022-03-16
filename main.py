@@ -308,7 +308,7 @@ default_reply = strip_lines(
 
 end_reply = strip_lines(
 	"""
-		That's all the lyrics I have for this song.
+		That's all the lyrics I have for the song "<friendly_song_name>".
 
 		---
 
@@ -454,18 +454,24 @@ for comment in comments:
 						continue
 
 					print(f"Match Position: {current_position}")
-					print("replying...")
-					next_line = original_lyrics[current_position + 1]
-					reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username)
-					reddit_tools.reply_to_comment(comment, reply)
-					if (current_position + 1) == len(clean_lyrics) - 1:
-						print(f"Just replied with the last line of the song.")
-						print("replying to indicate this...")
-						reply = format_reply(original_lyrics[current_position + 1], current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, reply_base=end_reply)
+
+					extent = get_lyric_extent(clean_lyrics, song_name, comment, current_position + 1, reddit_tools.username)
+					if current_position + 1 != len(clean_lyrics) or extent > 0:
+						print("replying...")
+						next_line = original_lyrics[current_position + 1]
+						reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username)
 						reddit_tools.reply_to_comment(comment, reply)
+						if (current_position + 1) == len(clean_lyrics) - 1:
+							print(f"Just replied with the last line of the song.")
+							print("replying to indicate this...")
+							reply = format_reply(original_lyrics[current_position + 1], current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, reply_base=end_reply)
+							reddit_tools.reply_to_comment(comment, reply)
+						replied_comments += 1
+					else:
+						print("Not replying because the next line is the last line of the song and there is no evidence of a preexisting chain.")
 
 					handled_comments += 1
-					replied_comments += 1
+					
 			else:
 				print(f"This comment is not at the bottom of the chain. Skipping...")
 				handled_comments += 1
