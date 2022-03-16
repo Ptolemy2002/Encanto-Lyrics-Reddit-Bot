@@ -456,7 +456,7 @@ for comment in comments:
 					print(f"Match Position: {current_position}")
 
 					extent = get_lyric_extent(clean_lyrics, song_name, comment, current_position + 1, reddit_tools.username)
-					if current_position + 1 != len(clean_lyrics) or extent > 0:
+					if current_position + 1 != len(clean_lyrics) or extent > 1:
 						print("replying...")
 						next_line = original_lyrics[current_position + 1]
 						reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username)
