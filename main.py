@@ -25,9 +25,9 @@ def clean_up_text(text):
 	#Strip accents
 	text = tools.strip_accents(text)
 	#Remove all non-alphanumeric characters (except - and ') by replacing with space
-	text = re.sub(r'[^a-zA-Z0-9\-\']', ' ', text)
+	text = re.sub(r'[^a-zA-Z0-9\-\'’]', ' ', text)
 	#Replace ' with nothing
-	text = re.sub(r'\'', '', text)
+	text = re.sub(r'[\'’]', '', text)
 	#Replace one or more dashes with a single space
 	text = re.sub(r'\-+', ' ', text)
 	"""#remove common words
