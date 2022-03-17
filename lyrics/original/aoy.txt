@@ -29,7 +29,7 @@ And no matter what happens we're gonna find our way
 Yo, I knew he never left, I heard him every day
 What's that sound?
 I think it's everyone in town
-Hey
+^Hey
 Lay down your load
 We are only down the road
 We have no gifts, but we are many
@@ -49,7 +49,7 @@ The constellations glow
 The seasons change in turn
 Would you watch our little girl go?
 She takes after you
-Oh
+^Oh
 Hey Mariano, why so blue?
 I just have so much love inside
 You know, I've got this cousin too
@@ -61,7 +61,7 @@ You write your own poetry every night when you go to sleep
 And I'm seizing the moment, so would you wake up and notice me?
 Dolores, I see you
 (and I hear you)
-Yes
+^Yes
 (all of you, all of you)
 Let's get married
 (slow down)
@@ -73,7 +73,7 @@ Neither are we
 (that's true)
 Just one more thing
 Before the celebration
-(what?)
+^(what?)
 We need a doorknob
 We made this one for you
 We see how bright you burn

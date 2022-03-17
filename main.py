@@ -30,10 +30,6 @@ def clean_up_text(text):
 	text = re.sub(r'[\'’]', '', text)
 	#Replace one or more dashes with a single space
 	text = re.sub(r'\-+', ' ', text)
-	"""#remove common words
-	common_words = ["the", "an", "and", "but", "for", "nor", "so", "yet", "at", "by", "for", "from", "in", "into", "like", "of", "off", "on", "onto", "to", "up", "via", "with"]
-	for word in common_words:
-		text = re.sub(r'\b' + word + r'\b', '', text)"""
 	#Replace all whitespace with a single space
 	text = re.sub(r'\s+', ' ', text)
 	#Strip leading and trailing spaces
@@ -228,7 +224,7 @@ def is_bottom_chain(song, comment):
 			if len(potential_indexes) > 0:
 				return False
 		return True
-			
+
 
 songs = get_songs()
 song_list = songs["list"]
@@ -381,6 +377,12 @@ requests_used = reddit_tools.reddit.auth.limits['used']
 original_lyrics = get_original_lyrics(song_name)
 clean_lyrics = get_clean_lyrics(song_name)
 
+ignore_indexes = []
+for i in range(len(original_lyrics)):
+	if original_lyrics[i][0] == "^":
+		ignore_indexes.append(i)
+		original_lyrics[i] = original_lyrics[i][1:]
+
 #Get a list of comments in the subreddit. Time how long this takes.
 print("Getting comments")
 start_time = time.time()
@@ -445,18 +447,24 @@ for comment in comments:
 					continue
 				else:
 					#current_position += 1
-					if current_position == len(clean_lyrics) - 1:
-						print(f"Found match at the end of the song.")
-						print("replying to indicate this...")
-						reply = format_reply(original_lyrics[current_position], current_position, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, reply_base=end_reply)
-						reddit_tools.reply_to_comment(comment, reply)
-						handled_comments += 1
-						continue
-
 					print(f"Match Position: {current_position}")
-
-					extent = get_lyric_extent(clean_lyrics, song_name, comment, current_position + 1, reddit_tools.username)
+					extent = get_lyric_extent(clean_lyrics, song_name, comment, current_position, reddit_tools.username)
+					
 					if current_position + 1 != len(clean_lyrics) or extent > 1:
+						if current_position in ignore_indexes and extent == 1:
+							print("Found a match, but it's an ignored lyric and at the beginning of a chain.")
+							print("We don't start chains with ignored lyrics. Skipping...")
+							handled_comments += 1
+							continue
+						
+						if current_position == len(clean_lyrics) - 1:
+							print(f"Found match at the end of the song.")
+							print("replying to indicate this...")
+							reply = format_reply(original_lyrics[current_position], current_position, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, reply_base=end_reply)
+							reddit_tools.reply_to_comment(comment, reply)
+							handled_comments += 1
+							continue
+						
 						print("replying...")
 						next_line = original_lyrics[current_position + 1]
 						reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username)

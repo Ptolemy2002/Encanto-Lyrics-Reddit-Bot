@@ -17,7 +17,7 @@ What could I do if I just knew it didn't need to be perfect?
 It just needed to be? And they'd let me be?
 A hurricane of jacarandas
 Strangling figs
-(big)
+^(big)
 hanging vines
 (this is fine)
 Palma de cera fills the air as I climb
@@ -37,9 +37,9 @@ Through the roof, to the skies
 Let's go
 A hurricane of jacarandas
 Strangling figs
-(go)
+^(go)
 hanging vines
-(grow)
+^(grow)
 Palma de cera fills the air as I climb
 And I push through
 What else, what else?
