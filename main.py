@@ -170,10 +170,10 @@ def get_lyric_extent(song, song_name, comment, index, username):
 						return math.inf
 					else:
 						print("Found one of this bot's comments, but it doesn't have the same internal song name as was specified. This marks the end of the chain.")
-						return current_extent - 1						
+						return 0					
 				else:
 					print("Found one of this bot's comments, but the position was not the same as was expected. This marks the end of the chain.")
-					return current_extent - 1
+					return 0
 
 		if clean_up_text(current_comment.body) == song[current_index]:
 			current_extent += 1
