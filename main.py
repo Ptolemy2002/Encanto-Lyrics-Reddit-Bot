@@ -246,12 +246,14 @@ def get_lyric_index(song, song_name, comment, username, potential_indexes=None):
 			if extent_array[i]["extent"] == max_extent:
 				return extent_array[i]["index"]
 
-def is_bottom_chain(song, comment):
+def is_bottom_chain(song, comment, username=reddit_tools.username):
 	comment.refresh()
 	if comment.replies is None:
 		return True
 	else:
 		for reply in comment.replies:
+			if reply.author.name == username:
+				return False
 			potential_indexes = get_potential_lyric_indexes(song, clean_up_text(reply.body))
 			if len(potential_indexes) > 0:
 				return False
