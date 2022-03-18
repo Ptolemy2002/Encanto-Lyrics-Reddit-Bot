@@ -1,3 +1,4 @@
+from operator import truediv
 import reddit_tools
 import os
 import sys
@@ -137,12 +138,43 @@ def get_songs():
 	
 	return result
 
+def close_match(lyric, text, max_missed_words=3):
+	text = clean_up_text(text)
+
+	#Break both strings into words
+	lyric_words = lyric.split(' ')
+	text_words = text.split(' ')
+	if len(text_words) < max_missed_words:
+		return lyric == text
+
+	#If the length of the two strings is not within the range, return false
+	if abs(len(lyric_words) - len(text_words)) > max_missed_words:
+		return False
+	
+	#Loop through the words of the longer string and check if they are in the same order
+	longest_words = []
+	shortest_words = []
+	if len(lyric_words) > len(text_words):
+		longest_words = lyric_words
+		shortest_words = text_words
+	else:
+		longest_words = text_words
+		shortest_words = lyric_words
+
+	missed_words = 0
+	for i in range(len(longest_words)):
+		if i > len(shortest_words) - 1 or longest_words[i] != shortest_words[i]:
+			missed_words += 1
+			if missed_words > max_missed_words:
+				return False
+	return True
+
 def get_potential_lyric_indexes(song, lyric):
 	result = []
 	clean_lyric = clean_up_text(lyric)
 	for i in range(len(song)):
 		line = song[i]
-		if clean_lyric == line:
+		if close_match(line, clean_lyric):
 			result.append(i)
 	return result
 
@@ -175,7 +207,7 @@ def get_lyric_extent(song, song_name, comment, index, username):
 					print("Found one of this bot's comments, but the position was not the same as was expected. This marks the end of the previous chain.")
 					return current_extent - 1
 
-		if clean_up_text(current_comment.body) == song[current_index]:
+		if close_match(song[current_index], current_comment.body):
 			current_extent += 1
 		else:
 			return current_extent
