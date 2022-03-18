@@ -144,7 +144,7 @@ def close_match(lyric, text, max_missed_words=3):
 	#Break both strings into words
 	lyric_words = lyric.split(' ')
 	text_words = text.split(' ')
-	if len(text_words) < max_missed_words:
+	if len(text_words) <= max_missed_words + 1:
 		return lyric == text
 
 	#If the length of the two strings is not within the range, return false
