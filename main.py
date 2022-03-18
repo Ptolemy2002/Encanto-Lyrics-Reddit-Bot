@@ -154,39 +154,9 @@ def count_matching_letters(word1, word2):
 			count += 1
 	return count
 
-def close_match(lyric, text, max_missed_words=3, min_matched_letter_ratio=0.5):
+def close_match(lyric, text):
 	text = clean_up_text(text)
-
-	#Break both strings into words
-	lyric_words = lyric.split(' ')
-	text_words = text.split(' ')
-	if len(text_words) <= max_missed_words + 1:
-		return lyric == text
-
-	#If the length of the two strings is not within the range, return false
-	if abs(len(lyric_words) - len(text_words)) > max_missed_words:
-		return False
-	
-	#Loop through the words of the longer string and check if they are in the same order
-	longest_words = []
-	shortest_words = []
-	if len(lyric_words) > len(text_words):
-		longest_words = lyric_words
-		shortest_words = text_words
-	else:
-		longest_words = text_words
-		shortest_words = lyric_words
-
-	missed_words = 0
-	for i in range(len(longest_words)):
-		if i > len(shortest_words) - 1 or longest_words[i] != shortest_words[i]:
-			#if less than two letters are matched, it's not a typo. Return false
-			if (count_matching_letters(longest_words[i], shortest_words[i]) / len(longest_words[i])) < min_matched_letter_ratio:
-				return False
-			missed_words += 1
-			if missed_words > max_missed_words:
-				return False
-	return True
+	return lyric == text
 
 def get_potential_lyric_indexes(song, lyric):
 	result = []
