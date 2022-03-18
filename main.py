@@ -138,7 +138,23 @@ def get_songs():
 	
 	return result
 
-def close_match(lyric, text, max_missed_words=3):
+def count_matching_letters(word1, word2):
+	#Count the number of matching letters between two words
+	count = 0
+	long_word = ""
+	short_word = ""
+	if len(word1) > len(word2):
+		long_word = word1
+		short_word = word2
+	else:
+		long_word = word2
+		short_word = word1
+	for i in range(len(short_word)):
+		if short_word[i] == long_word[i]:
+			count += 1
+	return count
+
+def close_match(lyric, text, max_missed_words=3, min_matched_letters=3):
 	text = clean_up_text(text)
 
 	#Break both strings into words
@@ -164,6 +180,9 @@ def close_match(lyric, text, max_missed_words=3):
 	missed_words = 0
 	for i in range(len(longest_words)):
 		if i > len(shortest_words) - 1 or longest_words[i] != shortest_words[i]:
+			#if less than two letters are matched, it's not a typo. Return false
+			if count_matching_letters(longest_words[i], shortest_words[i]) < min_matched_letters:
+				return False
 			missed_words += 1
 			if missed_words > max_missed_words:
 				return False
