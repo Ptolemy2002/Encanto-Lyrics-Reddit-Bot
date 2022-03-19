@@ -4,6 +4,9 @@ import sys
 import time
 
 print("Attempting launch on " + time.strftime("%Y-%m-%d %H:%M:%S") + "...")
+#store the current time inside "start_time.txt" Overwrite if it exists. Create if it doesn't.
+with open('start_time.txt', 'w') as f:
+	f.write(str(time.time()))
 
 #get the path of this file
 path = os.path.dirname(os.path.realpath(__file__))
@@ -72,3 +75,5 @@ for song in songs:
 	print("")
 
 print("Successfully launched the bot " + str(launch_count) + " times out of " + str(launch_tries) + " tries (" + str(round(launch_count / launch_tries * 100, 2)) + "% success rate).")
+#delete the start_time.txt file
+os.remove('start_time.txt')

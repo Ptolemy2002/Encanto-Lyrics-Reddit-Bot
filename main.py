@@ -301,6 +301,9 @@ args = tools.get_args(
 print("Specified subreddit: " + args['subreddit'])
 print("Specified song: " + args['song'])
 
+#get the start time from "start_time.txt"
+process_start_time = float(get_file_contents("start_time.txt")[0])
+
 subreddit = reddit_tools.reddit.subreddit(args['subreddit'])
 song_name = args['song']
 comment_limit = args['comment limit']
@@ -433,6 +436,11 @@ for comment in comments:
 			print(f"Found comment '{comment.id}' that is too old ({age} hours). Stopping here...")
 			#Stop processing additional comments, since all the rest are going to be too old
 			break
+		
+		#Don't handle the comment if it was made after process_start_time
+		if comment.created_utc > process_start_time:
+			print(f"Found comment '{comment.id}' that was made after process start time ({process_start_time}). Skipping...")
+			continue
 
 		"""#Don't handle the comment if it is a root comment made by a moderator
 		if comment.author.name in mods and reddit_tools.is_root_comment(comment):
