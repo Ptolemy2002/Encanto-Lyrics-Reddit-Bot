@@ -9,9 +9,11 @@ A rhythm of its own design
 This is my family
 A perfect constellation
 So many stars and everybody gets to shine
-Whoa
-But let's be clear, Abuela runs this show, whoa
-She led us here so many years ago, whoa
+^Whoa
+Let's be clear, Abuela runs this show
+^Whoa
+She led us here so many years ago
+^Whoa
 And every year our family blessings grow
 There's just a lot you've simply got to know, so
 Welcome to the Family Madrigal
@@ -35,13 +37,15 @@ Well, the temperature gets weird
 My tío Bruno
 We don't talk about Bruno
 They say he saw the future, one day he disappeared
-Oh! And that's my mom Julieta, here's her deal, whoa
-The truth is, she can heal you with a meal, whoa
+And that's my mom Julieta, here's her deal
+^whoa
+The truth is, she can heal you with a meal
+^whoa
 Her recipes are remedies for real
-If you're impressed, imagine how I feel, Mom!
+If you're impressed, imagine how I feel
+^Mom!
 Welcome to the Family Madrigal
 The home of the Family Madrigal
-(Hey, coming through)
 I know it sounds a bit fantastical and magical
 But I'm part of the Family Madrigal
 Two guys fell in love with Family Madrigal
@@ -73,8 +77,8 @@ My older sisters
 Isabela and Luisa
 One strong, one graceful
 Perfect in every way
+^(Isabela)
 Grows a flower, the town goes wild
-(Isabela)
 She's a perfect golden child
 (Luisa! Luisa! Luisa! Luisa!)
 And Luisa's super strong
@@ -82,31 +86,33 @@ The beauty and the brawn do no wrong
 That's life in the Family Madrigal (whoa)
 Now you know the Family Madrigal (whoa)
 Where all the people are fantastical and magical (whoa)
-That's who we are in the Family Madrigal, ¡adiós!
-Ooh (but what's your gift?)
-Ha
+That's who we are in the Family Madrigal, adios!
+(but what's your gift?)
+^Ha
 Well, I gotta go, the life of a Madrigal (whoa)
 But now you all know the Family Madrigal (whoa)
 I never meant this to get autobiographical (whoa)
 So just to review the Family Madrigal
 Let's go
 It starts with Abuela
-And then Tía Pepa, she handles the weather
-(but what about Mirabel?)
-My mom Julieta can make you feel better with just one arepa
-(but what about Mirabel?)
+And then Tía Pepa, she handles the weather (but what about Mirabel?)
+My mom Julieta can make you feel better with just one arepa (but what about Mirabel?)
 My dad Agustín, well
-He's accident-prone but he means well
-(but what about Mirabel?)
+He's accident-prone but he means well (but what about Mirabel?)
 Hey, you said you wanna know what everyone does
-I got sisters and cousins and
+I got sisters and cousins and (Mirabel)
 My primo Camilo won't stop until he makes you smile today
+^(Mirabel)
 My cousin Dolores can hear this whole chorus a mile away
+^(Mirabel)
 Look, it's Mister Mariano, hey
-You can marry my sister if you wanna but
+You can marry my sister if you wanna
 Between you and me, she's kind of a prima donna
-Yo, I've said too much and thank you but I really gotta go
+I've said too much and thank you but I really gotta go
+^(Mirabel)
 My family's amazing
+^(Mirabel)
 And I'm in my family, so
-Well
-Mirabel
+^(Mirabel)
+^Well
+^(Mirabel)

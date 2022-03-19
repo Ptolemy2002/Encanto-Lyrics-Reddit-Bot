@@ -52,7 +52,6 @@ def get_original_lyrics(song):
 
 	#If the file already exists, return the contents
 	if os.path.exists(file_name):
-		print("Getting original lyrics for '" + song + "'")
 		return get_file_contents(file_name)
 	else:
 		raise Exception(
@@ -400,6 +399,7 @@ update_user_blacklist(user_blacklist)
 
 requests_used = reddit_tools.reddit.auth.limits['used']
 
+print("Getting original lyrics for '" + song_name + "'")
 original_lyrics = get_original_lyrics(song_name)
 clean_lyrics = get_clean_lyrics(song_name)
 
