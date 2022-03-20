@@ -5,7 +5,7 @@ import time
 
 print("Attempting launch on " + time.strftime("%Y-%m-%d %H:%M:%S") + "...")
 #store the current time inside "start_time.txt" Overwrite if it exists. Create if it doesn't.
-with open('start_time.txt', 'w') as f:
+with open('start_time.txt', 'w', encoding="utf-8") as f:
 	f.write(str(time.time()))
 
 #get the path of this file
@@ -13,7 +13,7 @@ path = os.path.dirname(os.path.realpath(__file__))
 
 def get_file_contents(file_name):
 	result = []
-	with open(path + "/" + file_name, 'r') as f:
+	with open(path + "/" + file_name, 'r', encoding="utf-8") as f:
 		for line in f:
 			line = line.strip()
 			if not line.startswith('#'):
@@ -23,7 +23,7 @@ def get_file_contents(file_name):
 def get_songs():
 	#Determine if the file "songs.txt" exists. Make it if not.
 	if not os.path.exists('songs.txt'):
-		with open('songs.txt', 'w') as f:
+		with open('songs.txt', 'w', encoding="utf-8") as f:
 			pass
 
 	result = []
@@ -38,7 +38,7 @@ def get_songs():
 def get_subreddits():
 	#Determine if the file "subreddits.txt" exists. Make it if not.
 	if not os.path.exists('subreddits.txt'):
-		with open('subreddits.txt', 'w') as f:
+		with open('subreddits.txt', 'w', encoding="utf-8") as f:
 			pass
 
 	result = []

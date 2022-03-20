@@ -12,7 +12,8 @@ file_contents_cache = {}
 def get_file_contents(file_name):
 	if not file_name in file_contents_cache:
 		result = []
-		with open(file_name, 'r') as f:
+
+		with open(file_name, 'r', encoding="utf-8") as f:
 			for line in f:
 				line = line.strip()
 				if not line.startswith('#'):
@@ -25,6 +26,7 @@ def get_file_contents(file_name):
 def clean_up_text(text):
 	#Strip accents
 	text = tools.strip_accents(text)
+
 	#Remove all non-alphanumeric characters (except - and ') by replacing with space
 	text = re.sub(r'[^a-zA-Z0-9\-\'’]', ' ', text)
 	#Replace ' with nothing
@@ -84,7 +86,7 @@ def get_clean_lyrics(song):
 				clean_lyrics.append(clean_up_text(line))
 		
 		#Write the cleaned lyrics to the file
-		with open(file_name, 'w') as f:
+		with open(file_name, 'w', encoding="utf-8") as f:
 			for line in clean_lyrics:
 				f.write(line + '\n')
 		return clean_lyrics
@@ -107,13 +109,13 @@ def get_user_blacklist():
 		user_blacklist = get_file_contents('user_blacklist.txt')
 	else:
 		#Write an empty blacklist to the file
-		with open('user_blacklist.txt', 'w') as f:
+		with open('user_blacklist.txt', 'w', encoding="utf-8") as f:
 			pass
 	return user_blacklist
 
 def update_user_blacklist(user_blacklist):
 	#overwrite the user blacklist with the new one
-	with open('user_blacklist.txt', 'w') as f:
+	with open('user_blacklist.txt', 'w', encoding="utf-8") as f:
 		for user in user_blacklist:
 			f.write(user + '\n')
 
@@ -129,7 +131,7 @@ def strip_lines(string):
 def get_songs():
 	#Determine if the file "songs.txt" exists. Make it if not.
 	if not os.path.exists('songs.txt'):
-		with open('songs.txt', 'w') as f:
+		with open('songs.txt', 'w', encoding="utf-8") as f:
 			pass
 
 	result = {}
