@@ -53,13 +53,14 @@ songs = get_songs()
 subreddits = get_subreddits()
 comment_limit = 1000
 max_age_hours = 2
+compatibility_mode = 2
 
 launch_count = 0
 launch_tries = 0
 
 for song in songs:
 	for subreddit in subreddits:
-		command = f"{sys.executable} \"{path}/main.py\" {subreddit} {song} {comment_limit} {max_age_hours}"
+		command = f"{sys.executable} \"{path}/main.py\" {subreddit} {song} {comment_limit} {max_age_hours} {compatibility_mode}"
 		print("")
 		print("Launching for song '" + song + "' in '" + subreddit + "' subreddit with command:'" + command + "'")
 		print("")

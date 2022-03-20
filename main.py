@@ -94,6 +94,13 @@ def get_clean_lyrics(song):
 			'". Please add them through a text file in the lyrics/original directory. The file name should be the same as the song name.'
 		)
 
+def get_compatibility_mode(comment):
+	compatibility_mode = re.search(r'Compatibility mode: (\d+)', comment.body)
+	if compatibility_mode is None:
+		return 1
+	else:
+		return int(compatibility_mode.group(1))
+
 def get_user_blacklist():
 	user_blacklist = []
 	if os.path.exists('user_blacklist.txt'):
@@ -127,13 +134,15 @@ def get_songs():
 
 	result = {}
 	result["list"] = []
+	result["urls"] = {}
 	result["dict"] = {}
 
 	for line in get_file_contents('songs.txt'):
 		if line != "" and not line.startswith('#'):
 			words = line.split(' ')
 			result["list"].append(words[0])
-			result["dict"][words[0]] = strip_lines(" ".join(words[1:]))
+			result["urls"][words[0]] = words[1]
+			result["dict"][words[0]] = strip_lines(" ".join(words[2:]))
 	
 	return result
 
@@ -179,6 +188,9 @@ def get_lyric_extent(song, song_name, comment, index, username):
 				return current_extent - 1
 			else:
 				current_position = int(current_position.group(1))
+				if get_compatibility_mode(current_comment) > 1:
+					current_position -= 1
+
 				if current_position == current_index:
 					#find the internal song name using regex "Internal song name: <internal_song_name>"
 					internal_song_name = re.search(r'Internal song name: (\w+)', current_comment.body)
@@ -247,10 +259,10 @@ def is_bottom_chain(song, comment, username=reddit_tools.username):
 				return False
 		return True
 
-
 songs = get_songs()
 song_list = songs["list"]
 song_friendly_names = songs["dict"]
+song_urls = songs["urls"]
 
 args = tools.get_args(
 	[
@@ -294,6 +306,16 @@ args = tools.get_args(
 			},
 			'condition': lambda x: x > 0,
 			'default': 24.0,
+		},
+
+		{
+			'name': 'compatibility mode',
+			'target_type': int,
+			'input_args': {
+				'invalid_message': 'Compatibility mode must be an integer.',
+				'cancel': 'default'
+			},
+			'default': 1,
 		}
 	], False)
 
@@ -305,8 +327,10 @@ process_start_time = float(get_file_contents("start_time.txt")[0])
 
 subreddit = reddit_tools.reddit.subreddit(args['subreddit'])
 song_name = args['song']
+song_url = song_urls[song_name]
 comment_limit = args['comment limit']
 max_age_hours = args['max age (hours)']
+compatibility_mode = args['compatibility mode']
 
 default_reply = strip_lines(
 	"""
@@ -314,8 +338,10 @@ default_reply = strip_lines(
 
 		---
 
-		**I am a bot.** I have responded to this comment chain with the next lyric to the Encanto song "<friendly_song_name>"
+		**I am a bot.** I have responded to this comment chain with the next lyric to the Encanto song "<friendly_song_name>".
 		according to my best estimate of the current position.
+
+		Am I Wrong? Suggest a correction [here](<song_url>).
 
 		For more information (including how to report a bug or opt out), click [here](<help_link>).
 
@@ -324,6 +350,8 @@ default_reply = strip_lines(
 		Current position: <current_position>
 
 		Internal song name: <internal_song_name>
+
+		Compatibility mode: <compatibility_mode>
 	"""
 )
 
@@ -335,6 +363,8 @@ end_reply = strip_lines(
 
 		**I am a bot.** This comment chain was for the Encanto song "<friendly_song_name>".
 
+		Am I Wrong? Suggest a correction [here](<song_url>).
+
 		For more information (including how to report a bug or opt out), click [here](<help_link>).
 
 		---
@@ -342,11 +372,16 @@ end_reply = strip_lines(
 		Current position: <current_position>
 
 		Internal song name: <internal_song_name>
+
+		Compatibility mode: <compatibility_mode>
 	"""
 )
 help_link = "https://www.reddit.com/r/Encanto_LyricBot/comments/tesdvp/encanto_lyric_bot_faq/"
 
-def format_reply(next_line, current_position, internal_song_name, friendly_song_name, help_link, owner, username, reply_base=default_reply):
+def format_reply(next_line, current_position, internal_song_name, friendly_song_name, help_link, owner, username, compatibility_mode, song_url, reply_base=default_reply):
+	if compatibility_mode > 1:
+		current_position += 1
+
 	reply = reply_base.replace('<next_line>', next_line)
 	reply = reply.replace('<current_position>', str(current_position))
 	reply = reply.replace('<internal_song_name>', internal_song_name)
@@ -354,6 +389,8 @@ def format_reply(next_line, current_position, internal_song_name, friendly_song_
 	reply = reply.replace('<help_link>', help_link)
 	reply = reply.replace('<owner>', owner)
 	reply = reply.replace('<username>', username)
+	reply = reply.replace('<compatibility_mode>', str(compatibility_mode))
+	reply = reply.replace('<song_url>', song_url)
 	return reply
 	
 
@@ -491,19 +528,19 @@ for comment in comments:
 						if current_position == len(clean_lyrics) - 1:
 							print(f"Found match at the end of the song.")
 							print("replying to indicate this...")
-							reply = format_reply(original_lyrics[current_position], current_position, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, reply_base=end_reply)
+							reply = format_reply(original_lyrics[current_position], current_position, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url, reply_base=end_reply)
 							reddit_tools.reply_to_comment(comment, reply)
 							handled_comments += 1
 							continue
 						
 						print("replying...")
 						next_line = original_lyrics[current_position + 1]
-						reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username)
+						reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url)
 						reddit_tools.reply_to_comment(comment, reply)
 						if (current_position + 1) == len(clean_lyrics) - 1:
 							print(f"Just replied with the last line of the song.")
 							print("replying to indicate this...")
-							reply = format_reply(original_lyrics[current_position + 1], current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, reply_base=end_reply)
+							reply = format_reply(original_lyrics[current_position + 1], current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url, reply_base=end_reply)
 							reddit_tools.reply_to_comment(comment, reply)
 						replied_comments += 1
 					else:

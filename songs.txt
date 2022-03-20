@@ -1,7 +1,7 @@
-wdtab We Don't Talk About Bruno
-wecid What Else Can I Do
-woam Waiting on a Miracle
-tfm The Family Madrigal
-sp Surface Pressure
-do Dos Orguitas
-aoy All of You
+wdtab https://www.reddit.com/r/Encanto_LyricBot/comments/tesnb6/we_dont_talk_about_bruno_lyrics/ We Don't Talk About Bruno
+wecid https://www.reddit.com/r/Encanto_LyricBot/comments/tev85f/what_else_can_i_do_lyrics/ What Else Can I Do
+woam https://www.reddit.com/r/Encanto_LyricBot/comments/tey3qm/lyrics_for_waiting_on_a_miracle/ Waiting on a Miracle
+tfm https://www.reddit.com/r/Encanto_LyricBot/comments/teztop/the_family_madrigal_lyrics/ The Family Madrigal
+sp https://www.reddit.com/r/Encanto_LyricBot/comments/tf1n6u/surface_pressure_lyrics/ Surface Pressure
+do https://www.reddit.com/r/Encanto_LyricBot/comments/tffoe1/dos_orguitas_lyrics/ Dos Orguitas
+aoy https://www.reddit.com/r/Encanto_LyricBot/comments/tffpl0/all_of_you_lyrics/ All of You
