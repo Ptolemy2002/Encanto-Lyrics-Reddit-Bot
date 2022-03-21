@@ -113,11 +113,27 @@ def get_user_blacklist():
 			pass
 	return user_blacklist
 
+def get_submission_ignore_list():
+	submission_ignore_list = []
+	if os.path.exists('submission_ignore_list.txt'):
+		submission_ignore_list = get_file_contents('submission_ignore_list.txt')
+	else:
+		#Write an empty blacklist to the file
+		with open('submission_ignore_list.txt', 'w', encoding="utf-8") as f:
+			pass
+	return submission_ignore_list
+
 def update_user_blacklist(user_blacklist):
 	#overwrite the user blacklist with the new one
 	with open('user_blacklist.txt', 'w', encoding="utf-8") as f:
 		for user in user_blacklist:
 			f.write(user + '\n')
+
+def update_submission_ignore_list(submission_ignore_list):
+	#overwrite the submission ignore list with the new one
+	with open('submission_ignore_list.txt', 'w', encoding="utf-8") as f:
+		for submission in submission_ignore_list:
+			f.write(submission + '\n')
 
 def strip_lines(string):
 	#Strip leading and trailing whitespace
@@ -401,10 +417,12 @@ mods = reddit_tools.get_mods(subreddit)"""
 
 print("Getting user blacklist")
 user_blacklist = get_user_blacklist()
+submission_ignore_list = get_submission_ignore_list()
 
-print("checking for user blacklist additions")
+print("checking for user blacklist additions and submissions to ignore")
 opt_in_text = "!optin"
 opt_out_text = "!optout"
+ignore_submission_text = "!ignorepost"
 
 #search for comments
 for comment in reddit_tools.get_notifications("comment", True):
@@ -419,6 +437,14 @@ for comment in reddit_tools.get_notifications("comment", True):
 			user_blacklist.remove(user)
 			print("User " + user + " has opted in to notifications.")
 			reddit_tools.reply_to_comment(comment, "You have opted back in to this bot's services. Have a nice day!")
+		
+		if body.lower() == ignore_submission_text.lower():
+			comment.refresh()
+			submission_id = comment.link_id
+			submission_ignore_list.append(submission_id)
+			print("Submission " + submission_id + " has been ignored.")
+			reddit_tools.reply_to_comment(comment, "I will no longer respond to any comments in this post. Have a nice day!")
+		
 
 #search for messages
 for message in reddit_tools.get_notifications("message", True):
@@ -435,6 +461,7 @@ for message in reddit_tools.get_notifications("message", True):
 			reddit_tools.reply_to_message(message, "You have opted back in to this bot's services. Have a nice day!")
 
 update_user_blacklist(user_blacklist)
+update_submission_ignore_list(submission_ignore_list)
 
 requests_used = reddit_tools.reddit.auth.limits['used']
 
@@ -499,6 +526,12 @@ for comment in comments:
 		#Don't handle the comment if we have already replied to a comment further down the chain
 		if reddit_tools.did_reply_comment(comment, require_root=False):
 			print(f"Found comment '{comment.id}' already replied to. Skipping...")
+			continue
+
+		#Don't handle the comment if it belongs to a submission that has been ignored
+		comment.refresh()
+		if comment.link_id in submission_ignore_list:
+			print(f"Found comment '{comment.id}' in an ignored submission. Skipping...")
 			continue
 		
 		#print(f"Found comment '{comment.id}' by '{comment.author.name}'. Body:")
