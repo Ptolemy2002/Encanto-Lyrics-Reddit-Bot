@@ -219,8 +219,8 @@ def get_lyric_extent(song, song_name, comment, index, username):
 						#As we have guaranteed that this comment is the one that matches the chain, we return infinity so that it will be recognized as the highest extent
 						return math.inf
 					else:
-						print("Found one of this bot's comments, but it doesn't have the same internal song name as was specified. This marks the end of the previous chain.")
-						return current_extent - 1			
+						print("Found one of this bot's comments, but it doesn't have the same internal song name as was specified. Stopping the chain here to allow a check for the other song.")
+						return None
 				else:
 					print("Found one of this bot's comments, but the position was not the same as was expected. This marks the end of the previous chain.")
 					return current_extent - 1
