@@ -340,7 +340,7 @@ default_reply = strip_lines(
 
 		---
 
-		**I am a bot.** I have responded to this comment chain with the next lyric to the Encanto song "<friendly_song_name>".
+		**I am a bot.** I have responded to this comment chain with the next lyric to the Encanto song "<friendly_song_name>"
 		according to my best estimate of the current position.
 
 		Am I Wrong? Suggest a correction [here](<song_url>).
@@ -538,12 +538,12 @@ for comment in comments:
 						print("replying...")
 						next_line = original_lyrics[current_position + 1]
 						reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url)
-						reddit_tools.reply_to_comment(comment, reply)
+						my_reply = reddit_tools.reply_to_comment(comment, reply)
 						if (current_position + 1) == len(clean_lyrics) - 1:
 							print(f"Just replied with the last line of the song.")
 							print("replying to indicate this...")
 							reply = format_reply(original_lyrics[current_position + 1], current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url, reply_base=end_reply)
-							reddit_tools.reply_to_comment(comment, reply)
+							reddit_tools.reply_to_comment(my_reply, reply)
 						replied_comments += 1
 					else:
 						print("Not replying because the next line is the last line of the song and there is no evidence of a preexisting chain.")

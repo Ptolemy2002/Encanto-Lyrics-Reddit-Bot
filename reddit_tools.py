@@ -104,13 +104,13 @@ def get_notifications(type='comment', unread=False, mark_read=True):
 	return list(result)
 
 def reply_to_comment(comment, text):
-	comment.reply(text)
+	return comment.reply(text)
 
 def reply_to_submission(submission, text):
-	submission.reply(text)
+	return submission.reply(text)
 
 def reply_to_message(message, text):
-	message.reply(text)
+	return message.reply(text)
 
 def get_comment_level(comment):
 	level = 0
