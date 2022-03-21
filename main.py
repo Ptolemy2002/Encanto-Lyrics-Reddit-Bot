@@ -440,6 +440,8 @@ for comment in reddit_tools.get_notifications("comment", True):
 		
 		if body.lower() == ignore_submission_text.lower():
 			comment.refresh()
+			if comment.link_id in submission_ignore_list:
+				continue
 			submission_id = comment.link_id
 			submission_ignore_list.append(submission_id)
 			print("Submission " + submission_id + " has been ignored.")
