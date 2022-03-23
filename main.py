@@ -308,8 +308,9 @@ default_reply = strip_lines(
 
 		For more information (including how to report a bug), click [here](<help_link>).
 
-		[opt out](<optout_message_link>)
-		[opt in](<optin_message_link>)
+		[Click to opt out](<optout_message_link>)
+
+		[Click to opt in if currently opted out](<optin_message_link>)
 
 		---
 
@@ -333,8 +334,9 @@ end_reply = strip_lines(
 
 		For more information (including how to report a bug), click [here](<help_link>).
 
-		[opt out](<optout_message_link>)
-		[opt in](<optin_message_link>)
+		[Click to opt out](<optout_message_link>)
+
+		[Click to opt in if currently opted out](<optin_message_link>)
 
 		---
 
