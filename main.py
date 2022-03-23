@@ -451,13 +451,13 @@ def main(args=None):
 			if original_lyrics[i][0] == "^":
 				ignore_indexes.append(i)
 				original_lyrics[i] = original_lyrics[i][1:]
-		
+
 		song_dict[song] = {
 			"original_lyrics": original_lyrics,
 			"clean_lyrics": clean_lyrics,
 			"ignore_indexes": ignore_indexes
 		}
-
+	
 	"""print("Getting subreddit moderators")
 	mods = reddit_tools.get_mods(subreddit)"""
 
@@ -588,6 +588,7 @@ def main(args=None):
 				potential_indexes_str[-1]["index"] = index["index"]
 				potential_indexes_str[-1]["song"] = index["song"]
 			print("Potential indexes: " + str(potential_indexes_str))
+
 			if len(potential_indexes) > 0:
 				lyric_index = get_lyric_index(song_dict, comment, reddit_tools.username, potential_indexes=potential_indexes)
 				current_position = lyric_index["index"]
@@ -609,8 +610,6 @@ def main(args=None):
 						extent = get_lyric_extent(clean_lyrics, song_name, comment, current_position, reddit_tools.username)
 
 						if current_position + 1 != len(clean_lyrics) or extent > 1:
-							print(f"extent is {extent}")
-							print(f"ignore_indexes is {ignore_indexes}")
 							if current_position in ignore_indexes and extent <= 1:
 								print("Found a match, but it's an ignored lyric and at the beginning of a chain.")
 								print("We don't start chains with ignored lyrics. Skipping...")
@@ -664,6 +663,7 @@ def main(args=None):
 	ignored_comments = total_comments - handled_comments
 	print(f"Handled {handled_comments} out of {total_comments} ({ignored_comments} ignored; {replied_comments} replied to; {(handled_comments/total_comments) * 100}% coverage) comments in {str(time.time() - start_time)} seconds")
 	print(f"Used a total of {limit_info['used'] - requests_used} requests in this instance of the script.")
+	file_contents_cache = {}
 
 if __name__ == "__main__":
 	print("It is recommended that you run 'launcher.py' to launch the bot instead of running this script directly.")
