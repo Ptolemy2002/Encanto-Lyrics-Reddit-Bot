@@ -564,7 +564,9 @@ def main(args=None):
 				continue
 
 			#Don't handle the comment if it belongs to a submission that has been ignored
-			comment.refresh()
+			if not hasattr(comment, "link_id"):
+				#refresh the comment to populate the link_id property
+				comment.refresh()
 			if comment.link_id in submission_ignore_list:
 				print(f"Found comment '{comment.id}' in an ignored submission. Skipping...")
 				continue
