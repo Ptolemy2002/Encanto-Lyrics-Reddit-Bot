@@ -596,6 +596,7 @@ def main(args=None):
 				song_url = song_urls[song_name]
 				original_lyrics = song_dict[song_name]["original_lyrics"]
 				clean_lyrics = song_dict[song_name]["clean_lyrics"]
+				ignore_indexes = song_dict[song_name]["ignore_indexes"]
 				
 				if is_bottom_chain(song_dict, song_name, comment):
 					if current_position == None:
