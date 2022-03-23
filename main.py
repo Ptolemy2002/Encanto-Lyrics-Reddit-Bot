@@ -662,13 +662,20 @@ def main(args=None):
 	print(f"Used a total of {limit_info['used'] - requests_used} requests in this instance of the script.")
 
 if __name__ == "__main__":
+	print("It is recommended that you run the 'launcher.py' to launch the bot instead of running this script directly.")
+
 	#store the current time inside "start_time.txt" Overwrite if it exists. Create if it doesn't.
 	with open('start_time.txt', 'w', encoding="utf-8") as f:
 		f.write(str(time.time()))
 
 	try:
+		print("Starting...")
+		print("")
 		main()
+		print("")
+		print("Successfully ran the bot.")
 	except Exception as e:
+		print("")
 		print("Error running bot")
 		print(traceback.format_exc())
 
