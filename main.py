@@ -610,7 +610,7 @@ def main(args=None):
 						extent = get_lyric_extent(clean_lyrics, song_name, comment, current_position, reddit_tools.username)
 
 						if current_position + 1 != len(clean_lyrics) or extent > 1:
-							if current_position in ignore_indexes and extent == 1:
+							if current_position in ignore_indexes and extent <= 1:
 								print("Found a match, but it's an ignored lyric and at the beginning of a chain.")
 								print("We don't start chains with ignored lyrics. Skipping...")
 								handled_comments += 1
