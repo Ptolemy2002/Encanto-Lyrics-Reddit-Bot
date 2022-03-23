@@ -1,4 +1,3 @@
-from operator import truediv
 import reddit_tools
 import os
 import sys
