@@ -15,6 +15,7 @@ def get_file_contents(file_name):
 			line = line.strip()
 			if not line.startswith('#'):
 				result.append(line)
+	return result
 
 def clean_up_text(text):
 	#Strip accents
