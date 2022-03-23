@@ -7,21 +7,14 @@ import time
 import math
 import traceback
 
-file_contents_cache = {}
-
 def get_file_contents(file_name):
-	if not file_name in file_contents_cache:
-		result = []
+	result = []
 
-		with open(file_name, 'r', encoding="utf-8") as f:
-			for line in f:
-				line = line.strip()
-				if not line.startswith('#'):
-					result.append(line)
-		file_contents_cache[file_name] = result
-		return result
-	else:
-		return file_contents_cache[file_name]
+	with open(file_name, 'r', encoding="utf-8") as f:
+		for line in f:
+			line = line.strip()
+			if not line.startswith('#'):
+				result.append(line)
 
 def clean_up_text(text):
 	#Strip accents
@@ -663,7 +656,6 @@ def main(args=None):
 	ignored_comments = total_comments - handled_comments
 	print(f"Handled {handled_comments} out of {total_comments} ({ignored_comments} ignored; {replied_comments} replied to; {(handled_comments/total_comments) * 100}% coverage) comments in {str(time.time() - start_time)} seconds")
 	print(f"Used a total of {limit_info['used'] - requests_used} requests in this instance of the script.")
-	file_contents_cache = {}
 
 if __name__ == "__main__":
 	print("It is recommended that you run 'launcher.py' to launch the bot instead of running this script directly.")
