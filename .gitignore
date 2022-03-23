@@ -2,3 +2,4 @@ praw.ini
 submission_ignore_list.txt
 subreddits.txt
 user_blacklist.txt
+start_time.txt
