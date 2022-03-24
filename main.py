@@ -587,6 +587,11 @@ def main(args=None):
 
 			if len(potential_indexes) > 0:
 				lyric_index = get_lyric_index(song_dict, comment, reddit_tools.username, potential_indexes=potential_indexes)
+				if lyric_index == None:
+					print(f"No match found. Skipping...")
+					handled_comments += 1
+					continue
+				
 				current_position = lyric_index["index"]
 				song_name = lyric_index["song"]
 				song_url = song_urls[song_name]
@@ -595,45 +600,40 @@ def main(args=None):
 				ignore_indexes = song_dict[song_name]["ignore_indexes"]
 				
 				if is_bottom_chain(song_dict, song_name, comment):
-					if current_position == None:
-						print(f"No match found. Skipping...")
-						handled_comments += 1
-						continue
+					#current_position += 1
+					print(f"Match Position: {current_position}")
+					print(f"Match Song: {song_name}")
+					extent = get_lyric_extent(clean_lyrics, song_name, comment, current_position, reddit_tools.username)
+
+					if current_position + 1 != len(clean_lyrics) or extent > 1:
+						if current_position in ignore_indexes and extent <= 1:
+							print("Found a match, but it's an ignored lyric and at the beginning of a chain.")
+							print("We don't start chains with ignored lyrics. Skipping...")
+							handled_comments += 1
+							continue
+						
+						if current_position == len(clean_lyrics) - 1:
+							print(f"Found match at the end of the song.")
+							print("replying to indicate this...")
+							reply = format_reply(original_lyrics[current_position], current_position, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url, optout_message_link, optin_message_link, reply_base=end_reply)
+							reddit_tools.reply_to_comment(comment, reply)
+							handled_comments += 1
+							continue
+						
+						print("replying...")
+						next_line = original_lyrics[current_position + 1]
+						reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url, optout_message_link, optin_message_link)
+						my_reply = reddit_tools.reply_to_comment(comment, reply)
+						if (current_position + 1) == len(clean_lyrics) - 1:
+							print(f"Just replied with the last line of the song.")
+							print("replying to indicate this...")
+							reply = format_reply(original_lyrics[current_position + 1], current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url, optout_message_link, optin_message_link, reply_base=end_reply)
+							reddit_tools.reply_to_comment(my_reply, reply)
+						replied_comments += 1
 					else:
-						#current_position += 1
-						print(f"Match Position: {current_position}")
-						print(f"Match Song: {song_name}")
-						extent = get_lyric_extent(clean_lyrics, song_name, comment, current_position, reddit_tools.username)
+						print("Not replying because the next line is the last line of the song and there is no evidence of a preexisting chain.")
 
-						if current_position + 1 != len(clean_lyrics) or extent > 1:
-							if current_position in ignore_indexes and extent <= 1:
-								print("Found a match, but it's an ignored lyric and at the beginning of a chain.")
-								print("We don't start chains with ignored lyrics. Skipping...")
-								handled_comments += 1
-								continue
-							
-							if current_position == len(clean_lyrics) - 1:
-								print(f"Found match at the end of the song.")
-								print("replying to indicate this...")
-								reply = format_reply(original_lyrics[current_position], current_position, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url, optout_message_link, optin_message_link, reply_base=end_reply)
-								reddit_tools.reply_to_comment(comment, reply)
-								handled_comments += 1
-								continue
-							
-							print("replying...")
-							next_line = original_lyrics[current_position + 1]
-							reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url, optout_message_link, optin_message_link)
-							my_reply = reddit_tools.reply_to_comment(comment, reply)
-							if (current_position + 1) == len(clean_lyrics) - 1:
-								print(f"Just replied with the last line of the song.")
-								print("replying to indicate this...")
-								reply = format_reply(original_lyrics[current_position + 1], current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url, optout_message_link, optin_message_link, reply_base=end_reply)
-								reddit_tools.reply_to_comment(my_reply, reply)
-							replied_comments += 1
-						else:
-							print("Not replying because the next line is the last line of the song and there is no evidence of a preexisting chain.")
-
-						handled_comments += 1
+					handled_comments += 1
 						
 				else:
 					print(f"This comment is not at the bottom of the chain. Skipping...")
