@@ -4,6 +4,20 @@ import sys
 import time
 import main
 import traceback
+import tools
+
+wait_time = tools.get_args([
+	{
+		'name': 'wait_time',
+		'target_type': float,
+		'input_args': {
+			'invalid_message': 'Wait time must be a positive number or 0.',
+			'cancel': 'default'
+		},
+		'condition': lambda x: x >= 0,
+		'default': 0
+	}
+], False)['wait_time']
 
 print("Attempting launch on " + time.strftime("%Y-%m-%d %H:%M:%S") + "...")
 #store the current time inside "start_time.txt" Overwrite if it exists. Create if it doesn't.
@@ -87,3 +101,9 @@ print("")
 print("Successfully launched the bot " + str(launch_count) + " times out of " + str(launch_tries) + " tries (" + str(round(launch_count / launch_tries * 100, 2)) + "% success rate).")
 #delete the start_time.txt file
 os.remove('start_time.txt')
+
+#wait for the specified amount of time before ending the program
+if wait_time > 0:
+	print("")
+	print("Waiting for " + str(wait_time) + " seconds before exiting...")
+	time.sleep(wait_time)
