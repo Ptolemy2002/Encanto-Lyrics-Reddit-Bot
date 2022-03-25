@@ -66,7 +66,7 @@ def get_subreddits():
 	return result
 
 subreddits = get_subreddits()
-comment_limit = 1000
+comment_limit = 500
 max_age_hours = 2
 compatibility_mode = 2
 
