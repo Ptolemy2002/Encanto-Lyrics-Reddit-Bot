@@ -107,3 +107,4 @@ if wait_time > 0:
 	print("")
 	print("Waiting for " + str(wait_time) + " seconds before exiting...")
 	time.sleep(wait_time)
+	print("-" * 20)
