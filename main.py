@@ -197,7 +197,7 @@ def count_matching_letters(word1, word2):
 
 def close_match(lyric, text):
 	text = clean_up_text(text)
-	match = re.match(lyric, text)
+	match = re.match("^" + lyric + "$", text)
 	if match is None:
 		return False
 	else:
