@@ -1,0 +1,12 @@
+your = (ur|your|youre)
+you = (u|you)
+are = (r|are)
+mi = (mi|me)
+umbrellas = (umbrellas|umbrella)
+sh = (sh|ch)
+seven = (seven|7)
+red = (red|read)
+about = (about|abt)
+em = (th)?em
+them = (th)?em
+til = (un)?til(l)?

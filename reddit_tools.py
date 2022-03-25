@@ -38,6 +38,8 @@ def get_mods(subreddit):
 	return result
 
 def is_root_comment(comment):
+	if not hasattr(comment, 'link_id'):
+		comment.refresh()
 	if comment.parent_id == comment.link_id:
 		return True
 	else:

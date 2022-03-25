@@ -17,7 +17,7 @@ def get_file_contents(file_name):
 				result.append(line)
 	return result
 
-def clean_up_text(text):
+def clean_up_text(text, word_regexes=None):
 	#Strip accents
 	text = tools.strip_accents(text)
 
@@ -35,6 +35,11 @@ def clean_up_text(text):
 	text = text.lower()
 	#Replace a character repeated more than once with a single instance
 	text = re.sub(r'(.)\1+', r'\1', text)
+
+	if word_regexes:
+		#substitute whole words with their regex equivalent
+		for word in word_regexes:
+			text = re.sub(f"(?<=\W){word}(?=\W|$)", word_regexes[word], text)
 
 	return text
 
@@ -55,7 +60,7 @@ def get_original_lyrics(song):
 			'". Please add them through a text file in the lyrics/original directory. The file name should be the same as the song name.'
 		)
 
-def get_clean_lyrics(song):
+def get_clean_lyrics(song, word_regexes):
 	#Determine if the directory lyrics/clean exists. Make it if not.
 	if not os.path.exists('lyrics/clean'):
 		os.makedirs('lyrics/clean')
@@ -76,7 +81,7 @@ def get_clean_lyrics(song):
 		for line in lyrics:
 			line = line.strip()
 			if not line.startswith('#'):
-				clean_lyrics.append(clean_up_text(line))
+				clean_lyrics.append(clean_up_text(line, word_regexes))
 		
 		#Write the cleaned lyrics to the file
 		with open(file_name, 'w', encoding="utf-8") as f:
@@ -88,6 +93,23 @@ def get_clean_lyrics(song):
 			'No lyrics found for "' + song + 
 			'". Please add them through a text file in the lyrics/original directory. The file name should be the same as the song name.'
 		)
+
+def get_word_regexes():
+	result = {}
+
+	file_name = "word_regexes.txt"
+	if os.path.exists(file_name):
+		lines = get_file_contents(file_name)
+		for line in lines:
+			parts = line.split('=')
+			if len(parts) == 2:
+				result[parts[0].strip()] = parts[1].strip()
+	else:
+		#write an empty file
+		with open(file_name, 'w', encoding="utf-8") as f:
+			pass
+
+	return result
 
 def get_compatibility_mode(comment):
 	compatibility_mode = re.search(r'Compatibility mode: (\d+)', comment.body)
@@ -175,7 +197,11 @@ def count_matching_letters(word1, word2):
 
 def close_match(lyric, text):
 	text = clean_up_text(text)
-	return lyric == text
+	match = re.match(lyric, text)
+	if match is None:
+		return False
+	else:
+		return True
 
 def get_potential_lyric_indexes(song_dict, lyric):
 	result = []
@@ -433,12 +459,15 @@ def main(args=None):
 	print("Specified Max age: " + str(max_age_hours))
 	print("Specified Compatibility mode: " + str(compatibility_mode))
 
+	print("Getting word regexes")
+	word_regexes = get_word_regexes()
+
 	song_dict = {}
 	for song in song_list:
 		print("Getting original lyrics for '" + song + "'")
 		original_lyrics = get_original_lyrics(song)
 		print("Getting clean lyrics for '" + song + "'")
-		clean_lyrics = get_clean_lyrics(song)
+		clean_lyrics = get_clean_lyrics(song, word_regexes)
 	
 		ignore_indexes = []
 		for i in range(len(original_lyrics)):
@@ -451,7 +480,7 @@ def main(args=None):
 			"clean_lyrics": clean_lyrics,
 			"ignore_indexes": ignore_indexes
 		}
-	
+
 	"""print("Getting subreddit moderators")
 	mods = reddit_tools.get_mods(subreddit)"""
 
@@ -603,7 +632,7 @@ def main(args=None):
 					#current_position += 1
 					print(f"Match Position: {current_position}")
 					print(f"Match Song: {song_name}")
-					extent = get_lyric_extent(clean_lyrics, song_name, comment, current_position, reddit_tools.username)
+					extent = get_lyric_extent(clean_lyrics, song_name, comment, current_position,  reddit_tools.username)
 
 					if current_position + 1 != len(clean_lyrics) or extent > 1:
 						if current_position in ignore_indexes and extent <= 1:
