@@ -1,13 +1,13 @@
-your = (ur|your|youre)
-you = (u|you)
-are = (r|are)
-mi = (mi|me)
-umbrellas = (umbrellas|umbrella)
-sh = (sh|ch)
-seven = (seven|7)
-red = (red|read)
-about = (about|abt)
-em = (th)?em
-them = (th)?em
-til(l)? = (un)?til
-says = (says|say|said)
+#each side is the same because we want all of these to be equivalent to each other in any case.
+(ur|your|youre) = (ur|your|youre)
+(u|you) = (u|you)
+(r|are) = (r|are)
+m(i|e) = m(i|e)
+umbrella(s)? = umbrella(s)?
+(sh|ch) = (sh|ch)
+(seven|7) = (seven|7)
+(red|read) = (red|read)
+(about|abt) = (about|abt)
+(th)?em = (th)?em
+(until|til(l)?) = (until|til(l)?)
+(says|say|said) = (says|say|said)
