@@ -9,4 +9,5 @@ red = (red|read)
 about = (about|abt)
 em = (th)?em
 them = (th)?em
-til = (un)?til(l)?
+til(l)? = (un)?til
+says = (says|say|said)

@@ -33,13 +33,12 @@ def clean_up_text(text, word_regexes=None):
 	text = text.strip()
 	#Convert to lowercase
 	text = text.lower()
-	#Replace a character repeated more than once with a single instance
-	text = re.sub(r'(.)\1+', r'\1', text)
-
 	if word_regexes:
 		#substitute whole words with their regex equivalent
 		for word in word_regexes:
-			text = re.sub(f"(?<=\W){word}(?=\W|$)", word_regexes[word], text)
+			text = re.sub(f"(\W|^)({word.lower()})(?=\W|$)", f"\\1{word_regexes[word].lower()}", text)
+	#Replace a character repeated more than once with a single instance
+	text = re.sub(r'(.)\1+', r'\1', text)
 
 	return text
 
@@ -103,7 +102,7 @@ def get_word_regexes():
 		for line in lines:
 			parts = line.split('=')
 			if len(parts) == 2:
-				result[parts[0].strip()] = parts[1].strip()
+				result[parts[0].strip()] = '='.join(parts[1:]).strip()
 	else:
 		#write an empty file
 		with open(file_name, 'w', encoding="utf-8") as f:
