@@ -3,11 +3,25 @@
 (u|you) = (u|you)
 (r|are) = (r|are)
 m(i|e) = m(i|e)
-umbrella(s)? = umbrella(s)?
 (sh|ch) = (sh|ch)
 (seven|7) = (seven|7)
 (red|read) = (red|read)
 (about|abt) = (about|abt)
 (th)?em = (th)?em
-(until|til(l)?) = (until|til(l)?)
+(until|til(l)?) = (until|til)
 (says|say|said) = (says|say|said)
+(was not|wasnt) = (was not|wasnt)
+walk(s|ed)? = walk(s|ed)?
+(it is|its) = (it i(s)|it(s))
+(can not|cannot|cant) = (can not|cannot|cant)
+
+#One way conversion. The right converts to the left, but not the other way around.
+prophecies = (prophecie(s)|prophecy(s))
+thatll = (thatll|that will)
+
+#plurals will match singulars, but not the other way around.
+(\w+?)e?s = \3(e?s?)
+#The "g" part of the "ing" suffix is optional.
+(\w+?)ing = \3(in(g)?)
+#the "er" suffix can also be "ur"
+(\w+?)er = \3(er|ur)

@@ -36,9 +36,9 @@ def clean_up_text(text, word_regexes=None):
 	if word_regexes:
 		#substitute whole words with their regex equivalent
 		for word in word_regexes:
-			text = re.sub(f"(\W|^)({word.lower()})(?=\W|$)", f"\\1{word_regexes[word].lower()}", text)
+			text = re.sub(f"(\W|^)({word})(?=\W|$)", f"\\1{word_regexes[word]}", text, flags=re.IGNORECASE | re.MULTILINE)
 	#Replace a character repeated more than once with a single instance
-	text = re.sub(r'(.)\1+', r'\1', text)
+	text = re.sub(r'([a-zA-Z0-9])\1+', r'\1', text)
 
 	return text
 

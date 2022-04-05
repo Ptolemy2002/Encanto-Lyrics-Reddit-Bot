@@ -70,7 +70,7 @@ Home sweet home
 I like the new foundation
 It isn't perfect
 Neither are we
-(that's true)
+^(that's true)
 Just one more thing
 Before the celebration
 ^(what?)

@@ -70,7 +70,7 @@
 70. I like the new foundation
 71. It isn't perfect
 72. Neither are we
-73. (that's true)
+73. ^(that's true)
 74. Just one more thing
 75. Before the celebration
 76. ^(what?)
