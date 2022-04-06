@@ -256,16 +256,16 @@ def get_lyric_extent(song, song_name, comment, index, username):
 					internal_song_name = re.search(r'Internal song name: (\w+)', current_comment.body)
 					if internal_song_name is None:
 						print("Found one of this bot's comments, but it doesn't have an internal song name. This marks the end of the previous chain.")
-						return current_extent - 1
+						return current_extent
 					elif internal_song_name.group(1) == song_name:
 						#As we have guaranteed that this comment is the one that matches the chain, we return infinity so that it will be recognized as the highest extent
 						return math.inf
 					else:
 						print("Found one of this bot's comments, but it doesn't have the same internal song name as was specified. This marks the end of the previous chain.")
-						return current_extent - 1
+						return current_extent
 				else:
 					print("Found one of this bot's comments, but the position was not the same as was expected. This marks the end of the previous chain.")
-					return current_extent - 1
+					return current_extent
 
 		count = close_match_count(song, current_index, current_comment.body)
 		if close_match(song, current_index, current_comment.body):
