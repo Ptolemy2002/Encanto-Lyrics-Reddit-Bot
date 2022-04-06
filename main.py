@@ -194,13 +194,30 @@ def count_matching_letters(word1, word2):
 			count += 1
 	return count
 
-def close_match(lyric, text):
+def close_match_count(lyrics, index, text):
 	text = clean_up_text(text)
-	match = re.match("^" + lyric + "$", text)
-	if match is None:
-		return False
+	result = 0
+	match = re.search(lyrics[index] + "$", text)
+	while index >= 0 and len(text) > 0 and match != None:
+		#removed the matched area from the text
+		text = (text[:match.start()] + text[match.end():]).strip()
+		result += 1
+		index -= 1
+		match = re.search(lyrics[index] + "$", text)
+	
+	return result
+		
+
+def close_match(song, index, text):
+	text = clean_up_text(text)
+	match_count = close_match_count(song, index, text)
+	if match_count > 0:
+		#join the matched lyrics together with a space
+		joined = " ".join(song[index - match_count + 1:index + 1])
+		#determine if the entire string matches this joined string
+		return re.match("^" + joined + "$", text) != None
 	else:
-		return True
+		return False
 
 def get_potential_lyric_indexes(song_dict, lyric):
 	result = []
@@ -210,8 +227,7 @@ def get_potential_lyric_indexes(song_dict, lyric):
 			print(song_dict)
 		song = song_dict[song_name]["clean_lyrics"]
 		for i in range(len(song)):
-			line = song[i]
-			if close_match(line, clean_lyric):
+			if close_match(song, i, clean_lyric):
 				result.append({
 					"index": i,
 					"song": song_name,
@@ -251,8 +267,9 @@ def get_lyric_extent(song, song_name, comment, index, username):
 					print("Found one of this bot's comments, but the position was not the same as was expected. This marks the end of the previous chain.")
 					return current_extent - 1
 
-		if close_match(song[current_index], current_comment.body):
-			current_extent += 1
+		count = close_match_count(song, current_index, current_comment.body)
+		if close_match(song, current_index, current_comment.body):
+			current_extent += count
 		else:
 			return current_extent
 
@@ -260,7 +277,7 @@ def get_lyric_extent(song, song_name, comment, index, username):
 			break
 
 		current_comment = current_comment.parent()
-		current_index -= 1
+		current_index -= count
 	
 	return current_extent
 
@@ -648,6 +665,7 @@ def main(args=None):
 							handled_comments += 1
 							continue
 						
+						print("Extent: " + str(extent))
 						print("replying...")
 						next_line = original_lyrics[current_position + 1]
 						reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url, optout_message_link, optin_message_link)
