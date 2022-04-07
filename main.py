@@ -489,12 +489,19 @@ def main(args=None):
 		for i in range(len(original_lyrics)):
 			if original_lyrics[i][0] == "^":
 				ignore_indexes.append(i)
-				original_lyrics[i] = original_lyrics[i][1:]
+				original_lyrics[i] = original_lyrics[i][1:].strip()
+		
+		continue_indexes = []
+		for i in range(len(original_lyrics)):
+			if original_lyrics[i].endswith("->"):
+				continue_indexes.append(i)
+				original_lyrics[i] = original_lyrics[i][:-2].strip()
 
 		song_dict[song] = {
 			"original_lyrics": original_lyrics,
 			"clean_lyrics": clean_lyrics,
-			"ignore_indexes": ignore_indexes
+			"ignore_indexes": ignore_indexes,
+			"continue_indexes": continue_indexes
 		}
 
 	"""print("Getting subreddit moderators")
@@ -643,6 +650,7 @@ def main(args=None):
 				original_lyrics = song_dict[song_name]["original_lyrics"]
 				clean_lyrics = song_dict[song_name]["clean_lyrics"]
 				ignore_indexes = song_dict[song_name]["ignore_indexes"]
+				continue_indexes = song_dict[song_name]["continue_indexes"]
 				
 				if is_bottom_chain(song_dict, song_name, comment):
 					#current_position += 1
@@ -665,12 +673,18 @@ def main(args=None):
 							handled_comments += 1
 							continue
 						
+						next_position = current_position + 1
+						next_line = original_lyrics[next_position]
+						while next_position in continue_indexes and next_position < len(clean_lyrics) - 1:
+							next_position += 1
+							print("Continuing to position " + str(next_position) + " as it's a continue index.")
+							next_line += " " + original_lyrics[next_position]
+
 						print("Extent: " + str(extent))
 						print("replying...")
-						next_line = original_lyrics[current_position + 1]
-						reply = format_reply(next_line, current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url, optout_message_link, optin_message_link)
+						reply = format_reply(next_line, next_position, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url, optout_message_link, optin_message_link)
 						my_reply = reddit_tools.reply_to_comment(comment, reply)
-						if (current_position + 1) == len(clean_lyrics) - 1:
+						if (next_position) == len(clean_lyrics) - 1:
 							print(f"Just replied with the last line of the song.")
 							print("replying to indicate this...")
 							reply = format_reply(original_lyrics[current_position + 1], current_position + 1, song_name, song_friendly_names[song_name], help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode, song_url, optout_message_link, optin_message_link, reply_base=end_reply)
