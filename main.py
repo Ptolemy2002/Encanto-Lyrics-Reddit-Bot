@@ -80,7 +80,7 @@ def get_clean_lyrics(song, word_regexes):
     elif os.path.exists(original_file_name):
         # get the file contents of the original lyrics and clean each line individually
         lyrics = get_original_lyrics(song)
-        print("Ganerating clean lyrics for '" + song + "'")
+        print("Generating clean lyrics for '" + song + "'")
         clean_lyrics = []
         for line in lyrics:
             line = line.strip()
@@ -552,7 +552,7 @@ def main(args=None):
         if comment.author:
             body = comment.body
             user = comment.author.name
-            if body.lower() == opt_out_text.lower() and not user in user_blacklist:
+            if body.lower() == opt_out_text.lower() and user not in user_blacklist:
                 user_blacklist.append(user)
                 print("User " + user + " has opted out of notifications.")
                 reddit_tools.reply_to_comment(comment, "You have opted out of this bot's services. Have a nice day!")
@@ -576,7 +576,7 @@ def main(args=None):
         if message.author:
             body = message.subject
             user = message.author.name
-            if body.lower() == opt_out_text.lower() and not user in user_blacklist:
+            if body.lower() == opt_out_text.lower() and user not in user_blacklist:
                 user_blacklist.append(user)
                 print("User " + user + " has opted out of notifications.")
                 reddit_tools.reply_to_message(message, "You have opted out of this bot's services. Have a nice day!")
@@ -670,7 +670,7 @@ def main(args=None):
             if len(potential_indexes) > 0:
                 lyric_index = get_lyric_index(song_dict, comment, reddit_tools.username,
                                               potential_indexes=potential_indexes)
-                if lyric_index == None:
+                if lyric_index is None:
                     print(f"No match found. Skipping...")
                     handled_comments += 1
                     continue
