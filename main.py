@@ -6,7 +6,13 @@ import re
 import time
 import math
 import traceback
-
+try:
+	from tqdm import tqdm
+except:
+	print("tqdm not installed")
+	install_command = sys.executable + " -m pip install tqdm"
+	print("Install command: " + install_command)
+	sys.exit()
 
 def get_file_contents(file_name):
     result = []
@@ -486,22 +492,33 @@ def main(args=None):
                         'cancel': 'default'
                     },
                     'default': 1,
+                },
+
+                {
+                    'name': 'use progress bar',
+                    'target_type': bool,
+                    'input_args': {
+                        'invalid_message': 'Use progress bar must be a boolean.',
+                        'cancel': 'default'
+                    },
+                    'default': False,
                 }
             ], False)
 
     # get the start time from "start_time.txt"
     process_start_time = float(get_file_contents("start_time.txt")[0])
 
-    subreddit = reddit_tools.reddit.subreddit(args['subreddit']) if args[
-                                                                        'subreddit'] != 'default' else reddit_tools.test_subreddit
+    subreddit = reddit_tools.reddit.subreddit(args['subreddit']) if args['subreddit'] != 'default' else reddit_tools.test_subreddit
     comment_limit = args['comment limit'] if args['comment limit'] != 'default' else 1000
     max_age_hours = args['max age (hours)'] if args['max age (hours)'] != 'default' else 24.0
     compatibility_mode = args['compatibility mode'] if args['compatibility mode'] != 'default' else 1
+    use_progress_bar = args['use progress bar'] if args['use progress bar'] != 'default' else False
 
     print("Specified subreddit: " + args['subreddit'])
     print("Specified Comment limit: " + str(comment_limit))
     print("Specified Max age: " + str(max_age_hours))
     print("Specified Compatibility mode: " + str(compatibility_mode))
+    print("Specified Use progress bar: " + str(use_progress_bar))
 
     print("Getting word regexes")
     word_regexes = get_word_regexes()
@@ -610,19 +627,25 @@ def main(args=None):
     # Loop through the comments. Time how long this takes.
     print("Handling comments")
     start_time = time.time()
+    if use_progress_bar:
+        comments = tqdm(comments, position=0, leave=False)
+    else:
+        comments = tqdm(comments, position=0, leave=False, disable=True)
+    print("(May stop early)")
+
     for comment in comments:
         if comment.author:
             age = (time.time() - comment.created_utc) / 3600
             # Don't handle the comment if it's too old
             if age > max_age_hours:
-                print(f"Found comment '{comment.id}' that is too old ({age} hours). Stopping here...")
+                tqdm.write(f"Found comment '{comment.id}' that is too old ({age} hours). Stopping here...")
                 # Stop processing additional comments, since all the rest are going to be too old
                 break
 
             # Don't handle the comment if it was made after process_start_time
             if comment.created_utc > process_start_time:
-                print(
-                    f"Found comment '{comment.id}' that was made after process start time ({process_start_time}). Skipping...")
+                tqdm.write(
+                          f"Found comment '{comment.id}' that was made after process start time ({process_start_time}). Skipping...")
                 continue
 
             """#Don't handle the comment if it is a root comment made by a moderator
@@ -632,17 +655,17 @@ def main(args=None):
 
             # Don't handle the comment if it is  made by a blacklisted user
             if comment.author.name in user_blacklist:
-                print(f"Found comment '{comment.id}' made by a blacklisted user (u/{comment.author}). Skipping...")
+                tqdm.write(f"Found comment '{comment.id}' made by a blacklisted user (u/{comment.author}). Skipping...")
                 continue
 
             # Don't handle the comment if it's made by the bot
             if comment.author.name == reddit_tools.username:
-                print(f"Found comment '{comment.id}' by this bot. Skipping...")
+                tqdm.write(f"Found comment '{comment.id}' by this bot. Skipping...")
                 continue
 
             # Don't handle the comment if we have already replied to a comment further down the chain
             if reddit_tools.did_reply_comment(comment, require_root=False):
-                print(f"Found comment '{comment.id}' already replied to. Skipping...")
+                tqdm.write(f"Found comment '{comment.id}' already replied to. Skipping...")
                 continue
 
             # Don't handle the comment if it belongs to a submission that has been ignored
@@ -650,28 +673,28 @@ def main(args=None):
                 # refresh the comment to populate the link_id property
                 comment.refresh()
             if comment.link_id in submission_ignore_list:
-                print(f"Found comment '{comment.id}' in an ignored submission. Skipping...")
+                tqdm.write(f"Found comment '{comment.id}' in an ignored submission. Skipping...")
                 continue
 
             # print(f"Found comment '{comment.id}' by '{comment.author.name}'. Body:")
             formatted_body = clean_up_text(comment.body)
             # print(f"\t{formatted_body}")
 
-            print("Found comment '" + comment.id + "' by '" + comment.author.name + "' that could be a match.")
-            print("Formatted Text: " + formatted_body)
+            tqdm.write("Found comment '" + comment.id + "' by '" + comment.author.name + "' that could be a match.")
+            tqdm.write("Formatted Text: " + formatted_body)
             potential_indexes = get_potential_lyric_indexes(song_dict, formatted_body)
             potential_indexes_str = []
             for index in potential_indexes:
                 potential_indexes_str.append({})
                 potential_indexes_str[-1]["index"] = index["index"]
                 potential_indexes_str[-1]["song"] = index["song"]
-            print("Potential indexes: " + str(potential_indexes_str))
+            tqdm.write("Potential indexes: " + str(potential_indexes_str))
 
             if len(potential_indexes) > 0:
                 lyric_index = get_lyric_index(song_dict, comment, reddit_tools.username,
                                               potential_indexes=potential_indexes)
                 if lyric_index is None:
-                    print(f"No match found. Skipping...")
+                    tqdm.write(f"No match found. Skipping...")
                     handled_comments += 1
                     continue
 
@@ -685,20 +708,20 @@ def main(args=None):
 
                 if is_bottom_chain(song_dict, song_name, comment):
                     # current_position += 1
-                    print(f"Match Position: {current_position}")
-                    print(f"Match Song: {song_name}")
+                    tqdm.write(f"Match Position: {current_position}")
+                    tqdm.write(f"Match Song: {song_name}")
                     extent = get_lyric_extent(clean_lyrics, song_name, comment, current_position, reddit_tools.username)
 
                     if current_position + 1 != len(clean_lyrics) or extent > 1:
                         if current_position in ignore_indexes and extent <= 1:
-                            print("Found a match, but it's an ignored lyric and at the beginning of a chain.")
-                            print("We don't start chains with ignored lyrics. Skipping...")
+                            tqdm.write("Found a match, but it's an ignored lyric and at the beginning of a chain.")
+                            tqdm.write("We don't start chains with ignored lyrics. Skipping...")
                             handled_comments += 1
                             continue
 
                         if current_position == len(clean_lyrics) - 1:
-                            print(f"Found match at the end of the song.")
-                            print("replying to indicate this...")
+                            tqdm.write(f"Found match at the end of the song.")
+                            tqdm.write("replying to indicate this...")
                             reply = format_reply(original_lyrics[current_position], current_position, song_name,
                                                  song_friendly_names[song_name], help_link, reddit_tools.owner,
                                                  reddit_tools.username, compatibility_mode, song_url,
@@ -711,18 +734,18 @@ def main(args=None):
                         next_line = original_lyrics[next_position]
                         while next_position in continue_indexes and next_position < len(clean_lyrics) - 1:
                             next_position += 1
-                            print("Continuing to position " + str(next_position) + " as it's a continue index.")
+                            tqdm.write("Continuing to position " + str(next_position) + " as it's a continue index.")
                             next_line += " " + original_lyrics[next_position]
 
-                        print("Extent: " + str(extent))
-                        print("replying...")
+                        tqdm.write("Extent: " + str(extent))
+                        tqdm.write("replying...")
                         reply = format_reply(next_line, next_position, song_name, song_friendly_names[song_name],
                                              help_link, reddit_tools.owner, reddit_tools.username, compatibility_mode,
                                              song_url, optout_message_link, optin_message_link)
                         my_reply = reddit_tools.reply_to_comment(comment, reply)
                         if (next_position) == len(clean_lyrics) - 1:
-                            print(f"Just replied with the last line of the song.")
-                            print("replying to indicate this...")
+                            tqdm.write(f"Just replied with the last line of the song.")
+                            tqdm.write("replying to indicate this...")
                             reply = format_reply(original_lyrics[current_position + 1], current_position + 1, song_name,
                                                  song_friendly_names[song_name], help_link, reddit_tools.owner,
                                                  reddit_tools.username, compatibility_mode, song_url,
@@ -730,20 +753,22 @@ def main(args=None):
                             reddit_tools.reply_to_comment(my_reply, reply)
                         replied_comments += 1
                     else:
-                        print(
-                            "Not replying because the next line is the last line of the song and there is no evidence of a preexisting chain.")
+                        tqdm.write(
+                                "Not replying because the next line is the last line of the song and there is no evidence of a preexisting chain.")
 
                     handled_comments += 1
 
                 else:
-                    print(f"This comment is not at the bottom of the chain. Skipping...")
+                    tqdm.write(f"This comment is not at the bottom of the chain. Skipping...")
                     handled_comments += 1
                     continue
             else:
-                print(f"This comment doesn't seem to match any lyrics. Skipping...")
+                tqdm.write(f"This comment doesn't seem to match any lyrics. Skipping...")
                 handled_comments += 1
         else:
-            print(f"Found comment '{comment.id}' that does not have an author. Skipping...")
+            tqdm.write(f"Found comment '{comment.id}' that does not have an author. Skipping...")
+
+    comments.close()
 
     limit_info = reddit_tools.reddit.auth.limits
     print(f"limit info: {limit_info}")

@@ -1,4 +1,3 @@
-
 import os
 import sys
 import time
@@ -69,6 +68,7 @@ subreddits = get_subreddits()
 comment_limit = 500
 max_age_hours = 2
 compatibility_mode = 2
+use_progress_bar = True
 
 launch_count = 0
 launch_tries = 0
@@ -78,7 +78,8 @@ for subreddit in subreddits:
 		"subreddit": subreddit,
 		"comment limit": comment_limit,
 		"max age (hours)": max_age_hours,
-		"compatibility mode": compatibility_mode
+		"compatibility mode": compatibility_mode,
+		"use progress bar": use_progress_bar
 	}
 
 	command = f"{sys.executable} \"{path}/main.py\" {subreddit} {comment_limit} {max_age_hours} {compatibility_mode}"
