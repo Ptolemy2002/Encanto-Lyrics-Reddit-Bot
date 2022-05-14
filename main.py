@@ -618,16 +618,30 @@ def main(args=None):
 
     if total_comments == 0:
         print("No comments found.")
-        sys.exit()
+        return
 
     handled_comments = 0
     replied_comments = 0
     print(f"Got {total_comments} comments in {str(time.time() - start_time)} seconds")
 
+    print("Filtering out comments older than max age")
+    count = 0
+    for comment in comments.copy():
+        age = (time.time() - comment.created_utc) / 3600
+        if age > max_age_hours:
+            comments.remove(comment)
+            count += 1
+    print(f"Filtered {count} comments")
+
+    if len(comments) == 0:
+        print("All comments have been filtered.")
+        return
+
     # Loop through the comments. Time how long this takes.
-    print("Handling comments")
+    print("Handling remaining comments")
     print("(May stop early)")
     start_time = time.time()
+
     if use_progress_bar:
         comments = tqdm(comments, position=0, leave=False)
     else:
@@ -635,13 +649,6 @@ def main(args=None):
 
     for comment in comments:
         if comment.author:
-            age = (time.time() - comment.created_utc) / 3600
-            # Don't handle the comment if it's too old
-            if age > max_age_hours:
-                tqdm.write(f"Found comment '{comment.id}' that is too old ({age} hours). Stopping here...")
-                # Stop processing additional comments, since all the rest are going to be too old
-                break
-
             # Don't handle the comment if it was made after process_start_time
             if comment.created_utc > process_start_time:
                 tqdm.write(
