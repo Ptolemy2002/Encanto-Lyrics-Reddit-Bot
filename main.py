@@ -155,7 +155,7 @@ def get_submission_ignore_list():
 
 def update_user_blacklist(user_blacklist):
     # overwrite the user blacklist with the new one
-    with open('user_blacklist.txt', 'w', encoding="utf-8"):
+    with open('user_blacklist.txt', 'w', encoding="utf-8") as f:
         for user in user_blacklist:
             f.write(user + '\n')
 
