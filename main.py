@@ -639,7 +639,6 @@ def main(args=None):
 
     # Loop through the comments. Time how long this takes.
     print("Handling remaining comments")
-    print("(May stop early)")
     start_time = time.time()
 
     if use_progress_bar:
