@@ -626,12 +626,12 @@ def main(args=None):
 
     # Loop through the comments. Time how long this takes.
     print("Handling comments")
+    print("(May stop early)")
     start_time = time.time()
     if use_progress_bar:
         comments = tqdm(comments, position=0, leave=False)
     else:
         comments = tqdm(comments, position=0, leave=False, disable=True)
-    print("(May stop early)")
 
     for comment in comments:
         if comment.author:
