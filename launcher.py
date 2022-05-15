@@ -5,7 +5,7 @@ import main
 import traceback
 import tools
 
-wait_time = tools.get_args([
+args = tools.get_args([
 	{
 		'name': 'wait_time',
 		'target_type': float,
@@ -15,8 +15,21 @@ wait_time = tools.get_args([
 		},
 		'condition': lambda x: x >= 0,
 		'default': 0
+	},
+
+	{
+		'name': 'use progress bar',
+		'target_type': bool,
+		'input_args': {
+			'invalid_message': 'Use progress bar must be a boolean.',
+			'cancel': 'default'
+		},
+		'default': True,
 	}
-], False)['wait_time']
+], False)
+
+wait_time = args['wait_time']
+use_progress_bar = args['use progress bar']
 
 print("Attempting launch on " + time.strftime("%Y-%m-%d %H:%M:%S") + "...")
 #store the current time inside "start_time.txt" Overwrite if it exists. Create if it doesn't.
@@ -68,7 +81,6 @@ subreddits = get_subreddits()
 comment_limit = 500
 max_age_hours = 2
 compatibility_mode = 2
-use_progress_bar = True
 
 launch_count = 0
 launch_tries = 0
